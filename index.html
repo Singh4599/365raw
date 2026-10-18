@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <!-- SheetJS for Excel Export -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <link rel="stylesheet" href="css/app.css?v=2.7.0" />
+  <link rel="stylesheet" href="css/app.css?v=3.0.0" />
 </head>
 <body>
 
@@ -18,16 +18,11 @@
 
 <div class="app-shell">
 
-  <!-- ── SIDEBAR (Courier Scanner Red Accent) ── -->
+  <!-- ── SIDEBAR ── -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo-area">
       <div class="brand-crest-wrap">
-        <svg viewBox="0 0 44 44" fill="none" class="brand-crest-svg">
-          <circle cx="22" cy="22" r="21" fill="#E60023" stroke="#D4AF37" stroke-width="1.5"/>
-          <circle cx="22" cy="22" r="18" fill="none" stroke="#D4AF37" stroke-dasharray="2 2" stroke-width="0.8"/>
-          <path d="M22 8L24 14L30 16L24 18L22 24L20 18L14 16L20 14Z" fill="#D4AF37"/>
-          <text x="22" y="32" font-family="'Inter', sans-serif" font-size="7.5" font-weight="900" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.5">LV SPICES</text>
-        </svg>
+        <img src="assets/images/lv-logo.webp" alt="LV Spices Logo" class="brand-crest-img" />
       </div>
       <div class="logo-text">
         <div class="logo-brand">L V Spices</div>
@@ -57,37 +52,42 @@
       </a>
     </nav>
 
+    <!-- Botanical spice decoration in lower-left -->
+    <div class="sidebar-art-wrap" aria-hidden="true">
+      <img src="assets/images/sidebar-spice-decoration.webp" alt="" class="sidebar-art-img" />
+    </div>
+
     <div class="sidebar-footer">
       <div class="cloud-status-pill connected" id="cloud-status-badge">
         <span class="cloud-dot"></span>
         <span id="cloud-status-text">Cloud Synced (Firestore)</span>
       </div>
-      <div class="fssai-sub-pill">FSSAI Raw Material Inward Standard</div>
+      <div class="fssai-sub-pill">FSSAI RAW MATERIAL INWARD STANDARD</div>
     </div>
   </aside>
 
-  <!-- ── MAIN ── -->
+  <!-- ── MAIN CONTENT AREA ── -->
   <div class="main-area">
 
-    <!-- HEADER -->
+    <!-- MAIN TOP HEADER -->
     <header class="app-header" id="app-header">
       <div class="header-left">
-        <button class="mobile-toggle" onclick="toggleSidebar()" id="mobile-toggle">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        <button class="mobile-toggle" onclick="toggleSidebar()" id="mobile-toggle" aria-label="Toggle navigation">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         </button>
         <div>
           <h1 class="header-title" id="header-title">Raw Material Inward Register</h1>
-          <div class="header-subtitle">Purchase Dates • Mandi Challans • Lots & Quality Status</div>
+          <div class="header-subtitle">Purchase Dates • Mandi Challans • Lots &amp; Quality Status</div>
         </div>
       </div>
       <div class="header-right" id="header-actions">
-        <!-- Excel Export Button -->
+        <!-- Exactly TWO action buttons -->
         <button class="action-btn excel-btn" onclick="openExportModal()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M8 13h8"/><path d="M8 17h8"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
           Export Excel (.xlsx)
         </button>
         <button class="action-btn primary-btn" onclick="switchView('add')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="15" height="15"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           New Inward
         </button>
       </div>
@@ -96,47 +96,93 @@
     <!-- ── REGISTER VIEW ── -->
     <div class="view-panel" id="view-register">
 
-      <!-- Official Title Banner -->
+      <!-- Official Title Banner with Spices Background -->
       <div class="official-banner">
-        <div class="ob-left">
-          <div class="ob-company">L V SPICES</div>
-          <div class="ob-doc">RAW MATERIAL INWARD & QUALITY LOG REGISTER</div>
-          <div class="ob-fssai">FSSAI Schedule 4 GMP Compliance • Raw Material Receipt & Traceability</div>
-        </div>
-        <div class="ob-right">
-          <div class="ob-tag">Month: October 2026</div>
-          <div class="ob-tag">Supervisor: Mukesh Vora</div>
+        <div class="ob-content-wrap">
+          <div class="ob-left">
+            <div class="ob-company">L V SPICES</div>
+            <div class="ob-doc">RAW MATERIAL INWARD &amp; QUALITY LOG REGISTER</div>
+            <div class="ob-fssai">FSSAI Schedule 4 GMP Compliance • Raw Material Receipt &amp; Traceability</div>
+          </div>
+          <div class="ob-right">
+            <div class="ob-tag">Month: October 2026</div>
+            <div class="ob-tag">Supervisor: Mukesh Vora</div>
+          </div>
         </div>
       </div>
 
-      <!-- Stats Bar -->
+      <!-- 4 Horizontally Aligned KPI Cards -->
       <div class="stats-bar" id="stats-bar">
-        <div class="stat-box">
-          <div class="stat-num" id="s-total-entries">0</div>
-          <div class="stat-lbl">Inward Consignments</div>
+        <!-- Card 1: Inward Consignments -->
+        <div class="stat-box stat-red">
+          <div class="stat-icon-wrap icon-red">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-num" id="s-total-entries">22</div>
+            <div class="stat-lbl">INWARD CONSIGNMENTS</div>
+          </div>
+          <svg class="kpi-wave wave-red" viewBox="0 0 120 40" fill="none" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M0 30 Q 35 40 70 20 T 120 15 L 120 40 L 0 40 Z" fill="currentColor"/>
+          </svg>
         </div>
-        <div class="stat-box">
-          <div class="stat-num" id="s-total-kg">0 KG</div>
-          <div class="stat-lbl">Total Weight Inward</div>
+
+        <!-- Card 2: Total Weight Inward -->
+        <div class="stat-box stat-green">
+          <div class="stat-icon-wrap icon-green">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><path d="M6 7h12l1 13H5L6 7z"></path><path d="M10 7V5a2 2 0 0 1 4 0v2"></path><circle cx="12" cy="13" r="2"></circle></svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-num" id="s-total-kg">21,375 KG</div>
+            <div class="stat-lbl">TOTAL WEIGHT INWARD</div>
+          </div>
+          <svg class="kpi-wave wave-green" viewBox="0 0 120 40" fill="none" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M0 30 Q 40 15 80 25 T 120 10 L 120 40 L 0 40 Z" fill="currentColor"/>
+          </svg>
         </div>
-        <div class="stat-box primary">
-          <div class="stat-num" id="s-total-val">₹0</div>
-          <div class="stat-lbl">Total Procurement Value</div>
+
+        <!-- Card 3: Total Procurement Value -->
+        <div class="stat-box stat-red-val">
+          <div class="stat-icon-wrap icon-red">
+            <span class="rupee-icon">₹</span>
+          </div>
+          <div class="stat-content">
+            <div class="stat-num red-val-num" id="s-total-val">₹41,28,850</div>
+            <div class="stat-lbl">TOTAL PROCUREMENT VALUE</div>
+          </div>
+          <svg class="kpi-wave wave-red" viewBox="0 0 120 40" fill="none" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M0 25 Q 35 38 70 20 T 120 18 L 120 40 L 0 40 Z" fill="currentColor"/>
+          </svg>
         </div>
-        <div class="stat-box">
-          <div class="stat-num" id="s-this-month">22</div>
-          <div class="stat-lbl">October 2026 Lots</div>
+
+        <!-- Card 4: October 2026 Lots -->
+        <div class="stat-box stat-blue">
+          <div class="stat-icon-wrap icon-blue">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-num" id="s-this-month">22</div>
+            <div class="stat-lbl">OCTOBER 2026 LOTS</div>
+          </div>
+          <svg class="kpi-wave wave-blue" viewBox="0 0 120 40" fill="none" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M0 28 Q 45 42 80 18 T 120 22 L 120 40 L 0 40 Z" fill="currentColor"/>
+          </svg>
         </div>
       </div>
 
-      <!-- Filters -->
+      <!-- Filters & Search Section -->
       <div class="filter-bar">
-        <input class="filter-input" type="text" id="search-input" placeholder="Search spice, supplier, lot, invoice..." oninput="applyFilters()" />
-        <input class="filter-input date-input" type="month" id="month-filter" value="2026-10" onchange="applyFilters()" />
+        <div class="search-input-wrap">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input class="filter-input search-input" type="text" id="search-input" placeholder="Search spice, supplier, lot, invoice..." oninput="applyFilters()" />
+        </div>
+        <div class="date-input-wrap">
+          <input class="filter-input date-input" type="month" id="month-filter" value="2026-10" onchange="applyFilters()" />
+        </div>
         <button class="filter-clear-btn" onclick="clearFilters()">Clear</button>
-        <div style="flex:1"></div>
-        <button class="action-btn excel-btn" onclick="openExportModal()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <div class="filter-spacer"></div>
+        <button class="action-btn download-report-btn" onclick="openExportModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           Download Report
         </button>
       </div>
@@ -151,25 +197,25 @@
           <table class="rm-table" id="rm-table">
             <thead>
               <tr>
-                <th style="width:48px; text-align:center;">Sr.</th>
-                <th style="width:105px;">Purchase Date</th>
-                <th style="min-width:170px;">Raw Material Name</th>
-                <th style="min-width:180px;">Supplier Name</th>
-                <th style="width:120px;">Invoice No.</th>
-                <th style="width:120px;">Supplier Lot / Vehicle</th>
-                <th style="width:110px;">Our Lot No.</th>
-                <th style="width:90px;" class="num-col">Qty (KG)</th>
-                <th style="width:95px;" class="num-col">Rate/KG (₹)</th>
-                <th style="width:110px;" class="num-col">Total (₹)</th>
-                <th style="width:120px; text-align:center;">Quality Status</th>
-                <th style="width:80px; text-align:center;">Action</th>
+                <th style="width:36px; text-align:center;">SR.</th>
+                <th style="width:96px;">PURCHASE DATE</th>
+                <th style="width:170px;">RAW MATERIAL NAME</th>
+                <th style="width:155px;">SUPPLIER NAME</th>
+                <th style="width:105px;">INVOICE NO.</th>
+                <th style="width:105px;">SUPPLIER LOT / VEHICLE</th>
+                <th style="width:95px;">OUR LOT NO.</th>
+                <th style="width:78px;" class="num-col">QTY (KG)</th>
+                <th style="width:75px;" class="num-col">RATE/KG (₹)</th>
+                <th style="width:95px;" class="num-col">TOTAL (₹)</th>
+                <th style="width:125px; text-align:center;">QUALITY STATUS</th>
+                <th style="width:70px; text-align:center;">ACTIONS</th>
               </tr>
             </thead>
             <tbody id="rm-tbody">
               <!-- Rendered by JS -->
             </tbody>
             <tfoot id="rm-tfoot">
-              <!-- Total row -->
+              <!-- Total row rendered by JS -->
             </tfoot>
           </table>
         </div>

@@ -132,24 +132,45 @@ function renderTable(dataToRender = null) {
     totalQty += qty;
     totalVal += total;
 
+    const rawMat = escapeHtml(entry.material || '—');
+    let matDisplay = `<span class="mat-title">${rawMat}</span>`;
+    if (rawMat.includes('(') && rawMat.includes(')')) {
+      const idxOpen = rawMat.indexOf('(');
+      const mainMat = rawMat.substring(0, idxOpen).trim();
+      const subMat = rawMat.substring(idxOpen).trim();
+      matDisplay = `<div class="mat-main">${mainMat}</div><div class="mat-sub">${subMat}</div>`;
+    }
+
+    const qualityText = entry.quality || 'Passed / Food Grade';
+    let qualityClass = 'status-passed';
+    if (qualityText.toLowerCase().includes('reject')) {
+      qualityClass = 'status-rejected';
+    } else if (qualityText.toLowerCase().includes('minor') || qualityText.toLowerCase().includes('sorting')) {
+      qualityClass = 'status-warning';
+    } else if (qualityText.toLowerCase().includes('lab') || qualityText.toLowerCase().includes('testing')) {
+      qualityClass = 'status-testing';
+    }
+
     return `
       <tr>
-        <td style="text-align:center; font-weight:700; color:var(--text-muted);">${idx + 1}</td>
-        <td style="font-size:12.5px;">${entry.date || '—'}</td>
-        <td><strong>${escapeHtml(entry.material)}</strong></td>
-        <td style="font-size:12.5px; color:var(--text-secondary);">${escapeHtml(entry.supplier)}</td>
-        <td style="font-family:monospace; font-size:12px;">${escapeHtml(entry.invoice)}</td>
-        <td style="font-size:12px; color:var(--text-muted);">${escapeHtml(entry.supplierLot || '—')}</td>
-        <td><span class="badge badge-brand">${escapeHtml(entry.ourLot)}</span></td>
+        <td style="text-align:center; font-weight:600; color:var(--text-secondary);">${idx + 1}</td>
+        <td style="font-size:12px; color:var(--text-secondary); white-space:nowrap;">${entry.date || '—'}</td>
+        <td style="max-width:170px;">${matDisplay}</td>
+        <td style="font-size:11.5px; color:var(--text-secondary); line-height:1.3; max-width:155px;">${escapeHtml(entry.supplier || '—')}</td>
+        <td style="font-family:'SF Mono',Consolas,monospace; font-size:11.5px; font-weight:500; color:var(--text-primary); white-space:nowrap;">${escapeHtml(entry.invoice || '—')}</td>
+        <td style="font-size:11.5px; color:var(--text-secondary); max-width:105px;">${escapeHtml(entry.supplierLot || '—')}</td>
+        <td style="font-size:11.5px; font-weight:600; color:var(--text-primary); white-space:nowrap;">${escapeHtml(entry.ourLot || '—')}</td>
         <td class="num-col font-bold">${formatNum(qty)}</td>
         <td class="num-col">₹${formatNum(rate)}</td>
-        <td class="num-col font-bold" style="color:#065F46;">₹${formatNum(total)}</td>
-        <td style="text-align:center;"><span class="badge badge-green">${escapeHtml(entry.quality || 'Passed')}</span></td>
+        <td class="num-col total-green">₹${formatNum(total)}</td>
         <td style="text-align:center;">
-          <button class="action-icon-btn" onclick="openEditModal(${entry.id})" title="Edit Inward">
+          <span class="status-pill ${qualityClass}">${escapeHtml(qualityText)}</span>
+        </td>
+        <td style="text-align:center; white-space:nowrap;">
+          <button class="table-action-btn edit-btn" onclick="openEditModal(${entry.id})" title="Edit Consignment">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           </button>
-          <button class="action-icon-btn danger" onclick="openDeleteModal(${entry.id})" title="Delete Inward">
+          <button class="table-action-btn delete-btn" onclick="openDeleteModal(${entry.id})" title="Delete Consignment">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
           </button>
         </td>
@@ -160,10 +181,10 @@ function renderTable(dataToRender = null) {
   if (tfoot) {
     tfoot.innerHTML = `
       <tr class="tfoot-row">
-        <td colspan="7" style="text-align:right; font-weight:800;">TOTAL CONSIGNMENTS (${data.length}):</td>
-        <td class="num-col font-bold">${formatNum(totalQty)} KG</td>
+        <td colspan="7" style="text-align:right; font-weight:800; color:var(--text-secondary); text-transform:uppercase; font-size:11.5px; letter-spacing:0.5px;">TOTAL CONSIGNMENTS (${data.length}):</td>
+        <td class="num-col font-bold" style="color:var(--text-primary);">${formatNum(totalQty)} KG</td>
         <td></td>
-        <td class="num-col font-bold" style="color:#065F46;">₹${formatNum(totalVal)}</td>
+        <td class="num-col font-bold total-green" style="font-size:14px;">₹${formatNum(totalVal)}</td>
         <td colspan="2"></td>
       </tr>
     `;
