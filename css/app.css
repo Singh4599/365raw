@@ -227,7 +227,7 @@ body {
 /* ── SIDEBAR BOTANICAL DECORATION ── */
 .sidebar-art-wrap {
   position: absolute;
-  bottom: 74px; /* Perfectly aligned right above the sidebar footer border */
+  bottom: 130px; /* Lifted up cleanly into the sidebar whitespace */
   left: 0;
   width: 250px;
   height: 350px;
@@ -237,6 +237,7 @@ body {
   display: flex;
   align-items: flex-end;
   opacity: 0.96;
+  transition: bottom 0.25s ease;
 }
 .sidebar-art-img {
   width: 100%;
@@ -245,7 +246,7 @@ body {
   object-fit: contain;
   object-position: bottom left;
   mix-blend-mode: multiply;
-  transform: scale(1.18) translate(-6px, 12px);
+  transform: scale(1.18) translate(-6px, 0px);
   transform-origin: bottom left;
   user-select: none;
 }

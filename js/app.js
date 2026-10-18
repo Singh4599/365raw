@@ -1,7 +1,7 @@
 // app.js — L V Spices Raw Material Inward Register
 // FSSAI Quality & Traceability with Firebase Firestore Cloud Sync & Gemini Vision AI
 
-import { saveEntryToCloud, deleteEntryFromCloud, loadAllRawEntriesFromCloud, updateCloudBadge } from './firebase-config.js?v=2.7.2';
+import { saveEntryToCloud, deleteEntryFromCloud, loadAllRawEntriesFromCloud, updateCloudBadge } from './firebase-config.js?v=3.0.2';
 import { scanRawMaterialInvoice } from './ocr.js?v=2.7.2';
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -175,10 +175,10 @@ function renderTable(dataToRender = null) {
           <span class="status-pill ${qualityClass}">${escapeHtml(qualityText)}</span>
         </td>
         <td style="text-align:center; white-space:nowrap;">
-          <button class="table-action-btn edit-btn" onclick="openEditModal(${entry.id})" title="Edit Consignment">
+          <button class="table-action-btn edit-btn" onclick="openEditModal('${escapeHtml(String(entry.id))}')" title="Edit Consignment">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           </button>
-          <button class="table-action-btn delete-btn" onclick="openDeleteModal(${entry.id})" title="Delete Consignment">
+          <button class="table-action-btn delete-btn" onclick="openDeleteModal('${escapeHtml(String(entry.id))}')" title="Delete Consignment">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
           </button>
         </td>
@@ -328,7 +328,7 @@ window.submitEntry = async function() {
   }
 
   if (editingId) {
-    const idx = entries.findIndex(e => e.id === editingId);
+    const idx = entries.findIndex(e => String(e.id) === String(editingId));
     if (idx !== -1) {
       entries[idx] = {
         ...entries[idx],
@@ -374,15 +374,198 @@ function resetForm() {
 }
 
 window.openEditModal = function(id) {
-  const entry = entries.find(e => e.id === id);
+  const entry = entries.find(e => String(e.id) === String(id));
+  if (!entry) {
+    showToast("Consignment record not found.");
+    return;
+  }
+
+  editingId = entry.id;
+
+  const modalTitle = document.getElementById('edit-modal-title');
+  if (modalTitle) {
+    modalTitle.textContent = `Edit Consignment — ${entry.ourLot || '#' + entry.id}`;
+  }
+
+  const modalBody = document.getElementById('modal-body');
+  if (!modalBody) return;
+
+  const formattedTotal = (parseFloat(entry.total) || (parseFloat(entry.qty || 0) * parseFloat(entry.rate || 0))).toFixed(2);
+
+  modalBody.innerHTML = `
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; padding:10px 14px; background:#F8FAFC; border:1px solid var(--border-color); border-radius:10px;">
+      <div>
+        <div style="font-size:11px; text-transform:uppercase; font-weight:700; color:var(--text-secondary); letter-spacing:0.5px;">OFFICIAL INWARD LOT NUMBER</div>
+        <div style="font-family:'SF Mono',Consolas,monospace; font-size:15px; font-weight:800; color:var(--text-primary); margin-top:2px;">${escapeHtml(entry.ourLot || 'RM-LOT-PENDING')}</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span class="status-pill status-passed" style="font-size:11px;">Cloud Synced</span>
+        <button type="button" class="action-btn" style="padding:4px 9px; font-size:11px;" onclick="openEditInAddForm('${escapeHtml(String(entry.id))}')" title="Edit in Full Page Form">
+          Full Page Form ↗
+        </button>
+      </div>
+    </div>
+
+    <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 14px;">
+      <div class="form-group">
+        <label class="form-label">Purchase Date *</label>
+        <input class="form-input" type="date" id="m-edit-date" value="${entry.date || ''}" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Raw Material / Spice Name *</label>
+        <input class="form-input" type="text" id="m-edit-material" value="${escapeHtml(entry.material || '')}" placeholder="e.g. Cumin Seeds (Jeera)" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Supplier / Mandi Name *</label>
+        <input class="form-input" type="text" id="m-edit-supplier" value="${escapeHtml(entry.supplier || '')}" placeholder="e.g. Patel Agro, Unjha Mandi" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Invoice / Challan No. *</label>
+        <input class="form-input" type="text" id="m-edit-invoice" value="${escapeHtml(entry.invoice || '')}" placeholder="e.g. INV-2026-8812" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Supplier Lot / Truck No.</label>
+        <input class="form-input" type="text" id="m-edit-supplier-lot" value="${escapeHtml(entry.supplierLot || '')}" placeholder="e.g. RJ-14-GA-8821 / BATCH-01" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Quality Status</label>
+        <select class="form-select" id="m-edit-quality">
+          <option value="Passed / Food Grade" ${entry.quality && entry.quality.includes('Passed') && !entry.quality.includes('Moisture') ? 'selected' : ''}>Passed / Food Grade</option>
+          <option value="Passed (Moisture Deviation)" ${entry.quality && entry.quality.includes('Moisture') ? 'selected' : ''}>Passed (Moisture Deviation)</option>
+          <option value="Quarantine / Testing Pending" ${entry.quality && entry.quality.includes('Quarantine') ? 'selected' : ''}>Quarantine / Testing Pending</option>
+          <option value="Rejected / Non-Conforming" ${entry.quality && entry.quality.includes('Rejected') ? 'selected' : ''}>Rejected / Non-Conforming</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Quantity (KG) *</label>
+        <div class="input-unit-wrap">
+          <input class="form-input" type="number" step="any" id="m-edit-qty" value="${entry.qty || ''}" oninput="calcEditModalTotal()" />
+          <span class="input-unit-tag">KG</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Rate per KG (₹) *</label>
+        <div class="input-unit-wrap">
+          <input class="form-input" type="number" step="any" id="m-edit-rate" value="${entry.rate || ''}" oninput="calcEditModalTotal()" />
+          <span class="input-unit-tag">₹ / KG</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:14px;">
+      <label class="form-label">Total Commercial Valuation (₹)</label>
+      <div class="input-total-box" style="margin-top:6px;">
+        <span class="itb-currency">₹</span>
+        <input class="itb-input" type="text" id="m-edit-total" readonly value="${formattedTotal}" />
+        <span class="itb-badge">Tax Invoice Base</span>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('modal-backdrop').style.display = 'flex';
+};
+
+window.calcEditModalTotal = function() {
+  const q = parseFloat(document.getElementById('m-edit-qty')?.value) || 0;
+  const r = parseFloat(document.getElementById('m-edit-rate')?.value) || 0;
+  const totalInput = document.getElementById('m-edit-total');
+  if (totalInput) {
+    totalInput.value = (q * r).toFixed(2);
+  }
+};
+
+window.closeModal = function() {
+  const backdrop = document.getElementById('modal-backdrop');
+  if (backdrop) backdrop.style.display = 'none';
+  editingId = null;
+};
+
+window.saveEditModal = async function() {
+  if (!editingId) return;
+
+  const idx = entries.findIndex(e => String(e.id) === String(editingId));
+  if (idx === -1) {
+    alert("Record not found.");
+    closeModal();
+    return;
+  }
+
+  const date = document.getElementById('m-edit-date')?.value;
+  const material = document.getElementById('m-edit-material')?.value.trim();
+  const supplier = document.getElementById('m-edit-supplier')?.value.trim();
+  const invoice = document.getElementById('m-edit-invoice')?.value.trim();
+  const supplierLot = document.getElementById('m-edit-supplier-lot')?.value.trim() || "";
+  const quality = document.getElementById('m-edit-quality')?.value || "Passed / Food Grade";
+  const qty = parseFloat(document.getElementById('m-edit-qty')?.value) || 0;
+  const rate = parseFloat(document.getElementById('m-edit-rate')?.value) || 0;
+  const total = parseFloat(document.getElementById('m-edit-total')?.value) || (qty * rate);
+
+  if (!date || !material || !supplier || !invoice || qty <= 0 || rate <= 0) {
+    alert("Please fill all required fields (*) with valid numbers.");
+    return;
+  }
+
+  const saveBtn = document.getElementById('modal-save-btn');
+  if (saveBtn) {
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = `Saving...`;
+  }
+
+  entries[idx] = {
+    ...entries[idx],
+    date,
+    material,
+    supplier,
+    invoice,
+    supplierLot,
+    quality,
+    qty,
+    rate,
+    total
+  };
+
+  localStorage.setItem('lv_raw_entries', JSON.stringify(entries));
+  try {
+    await saveEntryToCloud(entries[idx]);
+  } catch (err) {
+    console.warn("Failed to save to cloud:", err);
+  }
+
+  if (saveBtn) {
+    saveBtn.disabled = false;
+    saveBtn.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="14" height="14"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
+      Save Changes to Cloud
+    `;
+  }
+
+  closeModal();
+  renderTable();
+  updateStats();
+  renderSummary();
+  updateSupplierList();
+  showToast(`Consignment ${entries[idx].ourLot || ''} updated successfully!`);
+};
+
+window.openEditInAddForm = function(id) {
+  const entry = entries.find(e => String(e.id) === String(id));
   if (!entry) return;
 
-  editingId = id;
+  closeModal();
+  editingId = entry.id;
   document.getElementById('f-date').value = entry.date || "";
   document.getElementById('f-material').value = entry.material || "";
   document.getElementById('f-supplier').value = entry.supplier || "";
   document.getElementById('f-invoice').value = entry.invoice || "";
-  document.getElementById('f-supplierLot' || 'f-supplier-lot').value = entry.supplierLot || "";
+  const supLotEl = document.getElementById('f-supplier-lot') || document.getElementById('f-supplierLot');
+  if (supLotEl) supLotEl.value = entry.supplierLot || "";
   document.getElementById('f-our-lot').value = entry.ourLot || "";
   document.getElementById('f-qty').value = entry.qty || "";
   document.getElementById('f-rate').value = entry.rate || "";
@@ -390,7 +573,7 @@ window.openEditModal = function(id) {
   document.getElementById('f-quality').value = entry.quality || "Passed / Food Grade";
 
   document.getElementById('edit-note').style.display = 'flex';
-  document.getElementById('submit-btn').innerHTML = `Update Entry (#${entry.id})`;
+  document.getElementById('submit-btn').innerHTML = `Update Consignment (${entry.ourLot || '#' + entry.id})`;
   switchView('add');
 };
 
@@ -398,7 +581,8 @@ window.openEditModal = function(id) {
 // DELETE LOGIC
 // ──────────────────────────────────────────────────────────────────────────────
 window.openDeleteModal = function(id) {
-  deletingId = id;
+  const entry = entries.find(e => String(e.id) === String(id));
+  deletingId = entry ? entry.id : id;
   document.getElementById('delete-backdrop').style.display = 'flex';
 };
 
@@ -409,13 +593,14 @@ window.closeDelete = function() {
 
 window.confirmDelete = async function() {
   if (!deletingId) return;
-  entries = entries.filter(e => e.id !== deletingId);
+  entries = entries.filter(e => String(e.id) !== String(deletingId));
   localStorage.setItem('lv_raw_entries', JSON.stringify(entries));
   await deleteEntryFromCloud(deletingId);
 
   closeDelete();
   renderTable();
   updateStats();
+  renderSummary();
   updateNextLotPreview();
   showToast("Consignment deleted from cloud.");
 };
