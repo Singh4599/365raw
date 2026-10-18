@@ -53,11 +53,14 @@ function getEffectiveToday() {
 // INIT & LOAD DATA
 // ──────────────────────────────────────────────────────────────────────────────
 async function initData() {
+  const deletedIds = new Set(JSON.parse(localStorage.getItem('lv_raw_deleted_ids') || '[]'));
+
   // 1. Check LocalStorage
   const local = localStorage.getItem('lv_raw_entries');
+  const hasInitialized = localStorage.getItem('lv_raw_initialized');
   if (local) {
     try {
-      entries = JSON.parse(local);
+      entries = JSON.parse(local).filter(e => !deletedIds.has(String(e.id)));
     } catch (e) {
       entries = [];
     }
@@ -67,30 +70,27 @@ async function initData() {
   try {
     const cloudList = await loadAllRawEntriesFromCloud();
     if (cloudList && cloudList.length > 0) {
-      entries = cloudList;
+      entries = cloudList.filter(e => !deletedIds.has(String(e.id)));
     }
   } catch (err) {
     console.warn('[Firebase] Load error, using local fallback:', err);
   }
 
-  // 3. Ensure baseline consignments from OCTOBER_PRELOAD_DATA are all populated
-  let updated = false;
-  OCTOBER_PRELOAD_DATA.forEach(preloadItem => {
-    const exists = entries.some(e => String(e.id) === String(preloadItem.id) || e.ourLot === preloadItem.ourLot);
-    if (!exists) {
-      entries.push(preloadItem);
-      updated = true;
-      saveEntryToCloud(preloadItem).catch(() => {});
-    }
-  });
-
-  if (updated || !local) {
-    localStorage.setItem('lv_raw_entries', JSON.stringify(entries));
+  // 3. Only seed baseline data ON FIRST RUN ever if completely empty
+  if (!hasInitialized && entries.length === 0) {
+    entries = OCTOBER_PRELOAD_DATA.filter(item => !deletedIds.has(String(item.id)));
+    entries.forEach(item => {
+      saveEntryToCloud(item).catch(() => {});
+    });
   }
+
+  localStorage.setItem('lv_raw_initialized', 'true');
+  localStorage.setItem('lv_raw_entries', JSON.stringify(entries));
 
   updateSupplierList();
   renderTable();
   updateStats();
+  renderSummary();
   updateNextLotPreview();
 }
 
@@ -593,7 +593,14 @@ window.closeDelete = function() {
 
 window.confirmDelete = async function() {
   if (!deletingId) return;
-  entries = entries.filter(e => String(e.id) !== String(deletingId));
+  const idStr = String(deletingId);
+
+  // Save to deleted set so it can never be resurrected
+  const deletedIds = new Set(JSON.parse(localStorage.getItem('lv_raw_deleted_ids') || '[]'));
+  deletedIds.add(idStr);
+  localStorage.setItem('lv_raw_deleted_ids', JSON.stringify([...deletedIds]));
+
+  entries = entries.filter(e => String(e.id) !== idStr);
   localStorage.setItem('lv_raw_entries', JSON.stringify(entries));
   await deleteEntryFromCloud(deletingId);
 
@@ -602,7 +609,7 @@ window.confirmDelete = async function() {
   updateStats();
   renderSummary();
   updateNextLotPreview();
-  showToast("Consignment deleted from cloud.");
+  showToast("Consignment deleted permanently.");
 };
 
 // ──────────────────────────────────────────────────────────────────────────────
