@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <!-- SheetJS for Excel Export -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <link rel="stylesheet" href="css/app.css?v=3.0.1" />
+  <link rel="stylesheet" href="css/app.css?v=3.0.3" />
 </head>
 <body>
 
@@ -44,7 +44,7 @@
       </a>
       <a class="nav-link" data-view="scan" onclick="switchView('scan')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-        Scan Invoice (AI OCR)
+        Invoice Scanner
       </a>
       <a class="nav-link" data-view="summary" onclick="switchView('summary')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
@@ -77,7 +77,7 @@
         </button>
         <div>
           <h1 class="header-title" id="header-title">Raw Material Inward Register</h1>
-          <div class="header-subtitle">Purchase Dates • Mandi Challans • Lots &amp; Quality Status</div>
+          <div class="header-subtitle">Purchase Dates • Invoices &amp; Challans • Lots &amp; Quality Status</div>
         </div>
       </div>
       <div class="header-right" id="header-actions">
@@ -274,7 +274,7 @@
         <!-- Section 1 -->
         <div class="form-section-heading">
           <span class="fsh-num">01</span>
-          <span class="fsh-text">MANDI &amp; SUPPLIER PARTICULARS</span>
+          <span class="fsh-text">SUPPLIER DETAILS</span>
         </div>
         <div class="form-grid">
           <div class="form-group">
@@ -312,7 +312,7 @@
           </div>
           <div class="form-group">
             <label class="form-label">Supplier Name *</label>
-            <input class="form-input" type="text" id="f-supplier" placeholder="e.g., Patel Agro Commodities, Unjha Mandi" list="supplier-list" />
+            <input class="form-input" type="text" id="f-supplier" placeholder="e.g., Patel Agro Commodities, Unjha" list="supplier-list" />
             <datalist id="supplier-list"></datalist>
           </div>
           <div class="form-group">
@@ -328,7 +328,7 @@
         <!-- Section 2 -->
         <div class="form-section-heading">
           <span class="fsh-num">02</span>
-          <span class="fsh-text">WEIGHT, ALLOTTED LOT &amp; COMMERCIAL VALUATION</span>
+          <span class="fsh-text">WEIGHT &amp; COMMERCIAL VALUATION</span>
         </div>
         <div class="form-grid">
           <div class="form-group">
@@ -365,7 +365,7 @@
         <!-- Section 3 -->
         <div class="form-section-heading">
           <span class="fsh-num">03</span>
-          <span class="fsh-text">FSSAI SCHEDULE 4 QUALITY &amp; HYGIENE INSPECTION</span>
+          <span class="fsh-text">QUALITY INSPECTION</span>
         </div>
         <div class="form-grid">
           <div class="form-group form-group-span-2">
@@ -374,7 +374,7 @@
               <option value="Passed / Food Grade" selected>✓ Passed / Food Grade (Moisture, Aroma &amp; Infestation Checked)</option>
               <option value="Approved with Minor Sorting">⚠ Approved with Minor Sorting Required</option>
               <option value="Under Lab Testing">⏳ Under Lab Testing / Moisture Pending</option>
-              <option value="Rejected / Returned">✕ Rejected / Returned to Mandi</option>
+              <option value="Rejected / Returned">✕ Rejected / Returned to Supplier</option>
             </select>
           </div>
           <div class="qa-assurance-card">
@@ -401,31 +401,18 @@
       </div>
     </div>
 
-    <!-- ── REAL GEMINI AI SCAN VIEW ── -->
+    <!-- ── INVOICE SCANNER VIEW ── -->
     <div class="view-panel" id="view-scan" style="display:none;">
       <div class="scan-card">
-        <div class="ai-badge-pill">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-          <span>GEMINI 2.5 FLASH MULTIMODAL VISION AI</span>
-        </div>
-
-        <h2 class="scan-title">AI Invoice &amp; Mandi Challan Scanner</h2>
-        <p class="scan-sub">Upload or capture any APMC Mandi bill, tax invoice, direct farmer slip, or weighbridge voucher. Deep neural vision extracts all 8 FSSAI inward fields in seconds.</p>
-
-        <!-- Document Types Supported Pills -->
-        <div class="doc-types-chips">
-          <span class="doc-chip">📄 APMC Mandi Challans</span>
-          <span class="doc-chip">🧾 GST Tax Invoices</span>
-          <span class="doc-chip">⚖️ Weighbridge Slips</span>
-          <span class="doc-chip">🚛 Transporter Bilty</span>
-        </div>
+        <h2 class="scan-title">Invoice Scanner</h2>
+        <p class="scan-sub">Upload or capture an invoice image to automatically extract and verify inward details.</p>
 
         <div class="upload-zone" id="upload-zone" onclick="document.getElementById('scan-file-input').click()" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handleDrop(event)">
           <div class="upload-icon-circle">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="34" height="34"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="32" height="32"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
           </div>
-          <div class="upload-text">Click to browse or drop bill / invoice image here</div>
-          <div class="upload-sub">Supports High-Res JPG, PNG, WebP &amp; PDF Receipts • Rotating 5 Gemini Vision API Keys</div>
+          <div class="upload-text">Click to upload bill image or drop file here</div>
+          <div class="upload-sub">Supports JPG, PNG, WebP or PDF files</div>
           <button type="button" class="action-btn upload-browse-btn" onclick="event.stopPropagation();document.getElementById('scan-file-input').click()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
             Choose Document
@@ -433,39 +420,20 @@
         </div>
         <input type="file" id="scan-file-input" accept="image/*,.pdf" style="display:none" onchange="handleFileUpload(this)" />
 
-        <!-- 3 Feature Highlights Row -->
-        <div class="scanner-features-row">
-          <div class="scan-feat-box">
-            <div class="sf-icon">⚡</div>
-            <div class="sf-title">Instant OCR</div>
-            <div class="sf-desc">Extracts weights, rates &amp; dates in &lt; 2s</div>
-          </div>
-          <div class="scan-feat-box">
-            <div class="sf-icon">🎯</div>
-            <div class="sf-title">High Accuracy</div>
-            <div class="sf-desc">Trained on Indian spice mandis &amp; trade formats</div>
-          </div>
-          <div class="scan-feat-box">
-            <div class="sf-icon">🛡️</div>
-            <div class="sf-title">Pre-Verification</div>
-            <div class="sf-desc">Review extracted fields before cloud save</div>
-          </div>
-        </div>
-
         <div class="scan-preview" id="scan-preview" style="display:none;">
           <img id="scan-preview-img" src="" alt="Invoice preview" />
         </div>
 
         <div class="scan-progress" id="scan-progress" style="display:none;">
           <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progress-fill"></div></div>
-          <div class="progress-text" id="progress-text">Initializing AI Vision...</div>
+          <div class="progress-text" id="progress-text">Scanning invoice details...</div>
         </div>
 
         <div class="scanned-result" id="scanned-result" style="display:none;">
           <div class="scan-result-header">
             <svg viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" width="20" height="20"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
             <div>
-              <strong>AI Extraction Complete — Verify &amp; Confirm Inward</strong>
+              <strong>Extraction Complete — Verify &amp; Confirm Inward</strong>
               <div style="font-size:11.5px; font-weight:400; color:#047857; margin-top:2px;">Review the parsed values below. Edit any field if needed, then confirm to allot the official lot number.</div>
             </div>
           </div>
@@ -485,24 +453,26 @@
 
     <!-- ── SUMMARY VIEW ── -->
     <div class="view-panel" id="view-summary" style="display:none;">
-      <div class="summary-hero-strip">
-        <div class="shs-left">
-          <div class="shs-tag">EXECUTIVE PROCUREMENT INTELLIGENCE</div>
-          <h2 class="shs-title">Commodities Inward &amp; Expenditure Summary</h2>
-          <div class="shs-sub">Aggregated inventory receipt, total capital deployment, and average procurement costs across all raw spice varieties.</div>
-        </div>
-        <div class="shs-metrics">
-          <div class="shs-metric-item">
-            <span class="shs-m-lbl">SPICE VARIETIES</span>
-            <span class="shs-m-val" id="sum-stat-varieties">12</span>
+      <div class="summary-photo-banner">
+        <div class="spb-content-wrap">
+          <div class="spb-left">
+            <div class="spb-tag">L V SPICES • PROCUREMENT INTELLIGENCE</div>
+            <h2 class="spb-title">Commodities Summary</h2>
+            <div class="spb-sub">Aggregated inventory receipt, total expenditure, and weighted average procurement rates across all raw spice varieties.</div>
           </div>
-          <div class="shs-metric-item">
-            <span class="shs-m-lbl">TOTAL STOCK INWARD</span>
-            <span class="shs-m-val" id="sum-stat-kg">21,375 KG</span>
-          </div>
-          <div class="shs-metric-item">
-            <span class="shs-m-lbl">CAPITAL DEPLOYED</span>
-            <span class="shs-m-val highlight" id="sum-stat-val">₹41,28,850</span>
+          <div class="spb-metrics">
+            <div class="spb-metric-item">
+              <span class="spb-m-lbl">SPICE VARIETIES</span>
+              <span class="spb-m-val" id="sum-stat-varieties">12</span>
+            </div>
+            <div class="spb-metric-item">
+              <span class="spb-m-lbl">TOTAL STOCK INWARD</span>
+              <span class="spb-m-val" id="sum-stat-kg">21,375 KG</span>
+            </div>
+            <div class="spb-metric-item">
+              <span class="spb-m-lbl">TOTAL SPEND</span>
+              <span class="spb-m-val highlight" id="sum-stat-val">₹41,28,850</span>
+            </div>
           </div>
         </div>
       </div>
@@ -526,7 +496,28 @@
       <button class="modal-close" onclick="closeExportModal()">✕</button>
     </div>
     <div class="modal-body">
-      <p style="color:#64748B; font-size:13px; margin-bottom:16px;">Download official FSSAI Schedule 4 formatted Raw Material Inward registers with verified weights, lots and Mandi challan references.</p>
+      <p style="color:#64748B; font-size:13px; margin-bottom:16px;">Download official FSSAI Schedule 4 formatted Raw Material Inward registers with verified weights, lots and challan references.</p>
+
+      <div class="summary-grid" id="summary-grid">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+
+  </div><!-- end main-area -->
+</div><!-- end app-shell -->
+
+<!-- EXCEL EXPORT MODAL -->
+<div class="modal-backdrop" id="export-modal" style="display:none;" onclick="closeExportModal()">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title-with-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#ED0926" stroke-width="2" width="22" height="22"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M8 13h8"/><path d="M8 17h8"/></svg>
+        <h3>Download Raw Material Inward Excel (.xlsx)</h3>
+      </div>
+      <button class="modal-close" onclick="closeExportModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="color:#64748B; font-size:13px; margin-bottom:16px;">Download official FSSAI Schedule 4 formatted Raw Material Inward registers with verified weights, lots and challan references.</p>
       
       <div class="export-options-grid">
         <button class="export-option-card" onclick="exportReport('daily')">
@@ -645,8 +636,8 @@
 <!-- Toast -->
 <div class="toast-container" id="toast-container"></div>
 
-<script type="module" src="js/firebase-config.js?v=3.0.2"></script>
-<script type="module" src="js/ocr.js?v=3.0.2"></script>
-<script type="module" src="js/app.js?v=3.0.2"></script>
+<script type="module" src="js/firebase-config.js?v=3.0.3"></script>
+<script type="module" src="js/ocr.js?v=3.0.3"></script>
+<script type="module" src="js/app.js?v=3.0.3"></script>
 </body>
 </html>

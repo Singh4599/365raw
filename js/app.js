@@ -418,8 +418,8 @@ window.openEditModal = function(id) {
       </div>
 
       <div class="form-group">
-        <label class="form-label">Supplier / Mandi Name *</label>
-        <input class="form-input" type="text" id="m-edit-supplier" value="${escapeHtml(entry.supplier || '')}" placeholder="e.g. Patel Agro, Unjha Mandi" />
+        <label class="form-label">Supplier Name *</label>
+        <input class="form-input" type="text" id="m-edit-supplier" value="${escapeHtml(entry.supplier || '')}" placeholder="e.g. Patel Agro, Unjha" />
       </div>
 
       <div class="form-group">
