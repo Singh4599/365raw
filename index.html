@@ -170,6 +170,30 @@
         </div>
       </div>
 
+      <!-- Period Selector / Quick Inward Tracking Tabs -->
+      <div class="period-pills-bar" id="period-pills-bar">
+        <button class="period-pill active" id="pill-all" onclick="setPeriodFilter('all')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+          <span>All Records</span>
+          <span class="period-badge" id="pill-all-count">22</span>
+        </button>
+        <button class="period-pill" id="pill-daily" onclick="setPeriodFilter('daily')">
+          <span class="live-dot"></span>
+          <span>Today (Daily Inward)</span>
+          <span class="period-badge highlight-green" id="pill-daily-count">6</span>
+        </button>
+        <button class="period-pill" id="pill-weekly" onclick="setPeriodFilter('weekly')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          <span>This Week</span>
+          <span class="period-badge" id="pill-weekly-count">10</span>
+        </button>
+        <button class="period-pill" id="pill-monthly" onclick="setPeriodFilter('monthly')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+          <span>October 2026</span>
+          <span class="period-badge" id="pill-monthly-count">22</span>
+        </button>
+      </div>
+
       <!-- Filters & Search Section -->
       <div class="filter-bar">
         <div class="search-input-wrap">
@@ -183,7 +207,7 @@
         <div class="filter-spacer"></div>
         <button class="action-btn download-report-btn" onclick="openExportModal()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Download Report
+          Download Report (.xlsx)
         </button>
       </div>
 
@@ -231,13 +255,27 @@
     <div class="view-panel" id="view-add" style="display:none;">
       <div class="form-card">
         <div class="form-card-header">
-          <div>
-            <h2 class="form-title">Raw Material Inward Entry</h2>
-            <div style="font-size:12px; color:var(--text-secondary); margin-top:3px;">Record invoice, quality inspection and lot numbering</div>
+          <div class="form-card-header-left">
+            <div class="form-card-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+            </div>
+            <div>
+              <h2 class="form-title">Raw Material Inward Entry</h2>
+              <div class="form-sub">FSSAI Schedule 4 GMP Standard • Supplier Challan Verification &amp; Lot Allotment</div>
+            </div>
           </div>
-          <span class="lot-badge" id="next-lot-preview">Next Lot: RM-OCT-023</span>
+          <div class="form-card-header-right">
+            <span class="lot-badge" id="next-lot-preview">
+              <span class="pulse-dot"></span> Next Lot: RM-OCT-023
+            </span>
+          </div>
         </div>
 
+        <!-- Section 1 -->
+        <div class="form-section-heading">
+          <span class="fsh-num">01</span>
+          <span class="fsh-text">MANDI &amp; SUPPLIER PARTICULARS</span>
+        </div>
         <div class="form-grid">
           <div class="form-group">
             <label class="form-label">Purchase Date *</label>
@@ -246,24 +284,29 @@
           <div class="form-group">
             <label class="form-label">Raw Material Name *</label>
             <div class="combo-wrap">
-              <input class="form-input" type="text" id="f-material" placeholder="e.g. Cumin Seeds (Jeera)" list="material-list" autocomplete="off" />
+              <input class="form-input" type="text" id="f-material" placeholder="e.g. Cumin Seeds (Jeera Machine Clean)" list="material-list" autocomplete="off" />
               <datalist id="material-list">
-                <option value="Cumin Seeds (Jeera)">
-                <option value="Coriander Whole (Dhaniya)">
-                <option value="Turmeric Whole (Haldi)">
-                <option value="Red Chilli Whole (Teja / Kashmiri)">
-                <option value="Black Pepper (Malabar Garbled)">
-                <option value="Mustard Seeds (Small Rai)">
-                <option value="Fennel Seeds (Lucknowi Saunf)">
-                <option value="Fenugreek (Methi Dana)">
+                <option value="Cumin Seeds (Jeera Machine Clean)">
+                <option value="Coriander Seeds (Dhaniya Badami Selected)">
+                <option value="Coriander Whole (Dhaniya Green Eagle)">
+                <option value="Turmeric Whole (Salem Double Polished)">
+                <option value="Red Chilli (Guntur Teja S17)">
+                <option value="Kashmiri Red Chilli Whole">
+                <option value="Black Pepper (Malabar Garbled TGSEB)">
+                <option value="Mustard Seeds (Small Bold Rai)">
+                <option value="Fennel Seeds (Lucknowi Saunf Extra Green)">
+                <option value="Fenugreek (Methi Dana Machine Clean)">
+                <option value="Kasuri Methi (Nagauri Dried Fenugreek Leaves)">
+                <option value="Nutmeg Whole / Jaiphal (Grade A1 Selected)">
+                <option value="Black Salt Lumps (Kala Namak Natural Crystal)">
                 <option value="Green Cardamom (8mm Bold)">
                 <option value="Cloves (Zanzibar Quality)">
-                <option value="Bay Leaf (Tej Patta)">
-                <option value="Cinnamon Sticks (Ceylon Alba)">
-                <option value="Dried Ginger (Sonth)">
-                <option value="Star Anise (Chakri Phool)">
-                <option value="Mace (Javitri)">
-                <option value="Amchur (Dry Mango Slice)">
+                <option value="Bay Leaf (Tej Patta Selected)">
+                <option value="Cinnamon Sticks (Ceylon Grade Alba)">
+                <option value="Dried Ginger (Sun Dried Sonth)">
+                <option value="Star Anise (Whole Chakri Phool)">
+                <option value="Mace (Javitri Golden Flower)">
+                <option value="Amchur (Dry Mango Slice Premium)">
               </datalist>
             </div>
           </div>
@@ -280,37 +323,73 @@
             <label class="form-label">Supplier Lot / Truck No.</label>
             <input class="form-input" type="text" id="f-supplier-lot" placeholder="e.g., RJ-14-GA-8821 / BATCH-01" />
           </div>
+        </div>
+
+        <!-- Section 2 -->
+        <div class="form-section-heading">
+          <span class="fsh-num">02</span>
+          <span class="fsh-text">WEIGHT, ALLOTTED LOT &amp; COMMERCIAL VALUATION</span>
+        </div>
+        <div class="form-grid">
           <div class="form-group">
-            <label class="form-label">Our Inward Lot No. (Auto)</label>
-            <input class="form-input" type="text" id="f-our-lot" readonly style="background:#F1F5F9; color:#0F172A; font-weight:700; cursor:not-allowed" />
+            <label class="form-label">Our Inward Lot No. <span class="tag-auto">AUTO-ASSIGNED</span></label>
+            <div class="input-lock-wrap">
+              <svg class="input-lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+              <input class="form-input locked-input" type="text" id="f-our-lot" readonly />
+            </div>
           </div>
           <div class="form-group">
             <label class="form-label">Quantity (KG) *</label>
-            <input class="form-input" type="number" id="f-qty" placeholder="1000" step="0.1" min="0" oninput="calcTotal()" />
+            <div class="input-unit-wrap">
+              <input class="form-input" type="number" id="f-qty" placeholder="1000" step="0.1" min="0" oninput="calcTotal()" />
+              <span class="input-unit-tag">KG</span>
+            </div>
           </div>
           <div class="form-group">
             <label class="form-label">Rate per KG (₹) *</label>
-            <input class="form-input" type="number" id="f-rate" placeholder="280.00" step="0.01" min="0" oninput="calcTotal()" />
+            <div class="input-unit-wrap">
+              <input class="form-input" type="number" id="f-rate" placeholder="280.00" step="0.01" min="0" oninput="calcTotal()" />
+              <span class="input-unit-tag">₹ / KG</span>
+            </div>
           </div>
-          <div class="form-group">
-            <label class="form-label">Total Value (₹)</label>
-            <input class="form-input" type="text" id="f-total" readonly style="background:#ECFDF5; color:#065F46; font-weight:800; font-size:15px; cursor:not-allowed" />
+          <div class="form-group form-group-span">
+            <label class="form-label">Total Commercial Value (₹) <span class="tag-calc">SYSTEM COMPUTED</span></label>
+            <div class="input-total-box">
+              <span class="itb-currency">₹</span>
+              <input class="itb-input" type="text" id="f-total" readonly placeholder="0.00" />
+              <span class="itb-badge">Tax Invoice Base</span>
+            </div>
           </div>
-          <div class="form-group">
-            <label class="form-label">Quality Status</label>
-            <select class="form-input" id="f-quality">
-              <option value="Passed / Food Grade" selected>Passed / Food Grade (Moisture & Aroma Checked)</option>
-              <option value="Approved with Minor Sorting">Approved with Minor Sorting</option>
-              <option value="Under Lab Testing">Under Lab Testing</option>
-              <option value="Rejected / Returned">Rejected / Returned</option>
+        </div>
+
+        <!-- Section 3 -->
+        <div class="form-section-heading">
+          <span class="fsh-num">03</span>
+          <span class="fsh-text">FSSAI SCHEDULE 4 QUALITY &amp; HYGIENE INSPECTION</span>
+        </div>
+        <div class="form-grid">
+          <div class="form-group form-group-span-2">
+            <label class="form-label">Quality Inspection Status</label>
+            <select class="form-input form-select-quality" id="f-quality">
+              <option value="Passed / Food Grade" selected>✓ Passed / Food Grade (Moisture, Aroma &amp; Infestation Checked)</option>
+              <option value="Approved with Minor Sorting">⚠ Approved with Minor Sorting Required</option>
+              <option value="Under Lab Testing">⏳ Under Lab Testing / Moisture Pending</option>
+              <option value="Rejected / Returned">✕ Rejected / Returned to Mandi</option>
             </select>
+          </div>
+          <div class="qa-assurance-card">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#00845B" stroke-width="2" width="18" height="18"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            <div>
+              <strong>FSSAI Schedule 4 Certified</strong>
+              <span>Moisture, foreign matter &amp; visual appearance must satisfy raw spice norms.</span>
+            </div>
           </div>
         </div>
 
         <div class="form-actions">
-          <button class="action-btn" onclick="switchView('register')">Cancel</button>
+          <button class="action-btn secondary-btn" onclick="switchView('register')">Cancel</button>
           <button class="action-btn primary-btn" onclick="submitEntry()" id="submit-btn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="15" height="15"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
             Save Inward Entry
           </button>
         </div>
@@ -325,18 +404,53 @@
     <!-- ── REAL GEMINI AI SCAN VIEW ── -->
     <div class="view-panel" id="view-scan" style="display:none;">
       <div class="scan-card">
-        <div class="scan-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#E60023" stroke-width="2" width="48" height="48"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        <div class="ai-badge-pill">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <span>GEMINI 2.5 FLASH MULTIMODAL VISION AI</span>
         </div>
-        <h2 class="scan-title">AI Invoice & Mandi Challan Scanner</h2>
-        <p class="scan-sub">Upload or capture any spice invoice, APMC Mandi bill or weighbridge slip. Gemini 2.5 Flash Vision extracts all fields instantly.</p>
+
+        <h2 class="scan-title">AI Invoice &amp; Mandi Challan Scanner</h2>
+        <p class="scan-sub">Upload or capture any APMC Mandi bill, tax invoice, direct farmer slip, or weighbridge voucher. Deep neural vision extracts all 8 FSSAI inward fields in seconds.</p>
+
+        <!-- Document Types Supported Pills -->
+        <div class="doc-types-chips">
+          <span class="doc-chip">📄 APMC Mandi Challans</span>
+          <span class="doc-chip">🧾 GST Tax Invoices</span>
+          <span class="doc-chip">⚖️ Weighbridge Slips</span>
+          <span class="doc-chip">🚛 Transporter Bilty</span>
+        </div>
 
         <div class="upload-zone" id="upload-zone" onclick="document.getElementById('scan-file-input').click()" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handleDrop(event)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="42" height="42"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          <div class="upload-text">Click to upload bill image or take photo</div>
-          <div class="upload-sub">JPG, PNG, PDF receipts • Rotating 5 Gemini Vision API Keys</div>
+          <div class="upload-icon-circle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="34" height="34"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          <div class="upload-text">Click to browse or drop bill / invoice image here</div>
+          <div class="upload-sub">Supports High-Res JPG, PNG, WebP &amp; PDF Receipts • Rotating 5 Gemini Vision API Keys</div>
+          <button type="button" class="action-btn upload-browse-btn" onclick="event.stopPropagation();document.getElementById('scan-file-input').click()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Choose Document
+          </button>
         </div>
         <input type="file" id="scan-file-input" accept="image/*,.pdf" style="display:none" onchange="handleFileUpload(this)" />
+
+        <!-- 3 Feature Highlights Row -->
+        <div class="scanner-features-row">
+          <div class="scan-feat-box">
+            <div class="sf-icon">⚡</div>
+            <div class="sf-title">Instant OCR</div>
+            <div class="sf-desc">Extracts weights, rates &amp; dates in &lt; 2s</div>
+          </div>
+          <div class="scan-feat-box">
+            <div class="sf-icon">🎯</div>
+            <div class="sf-title">High Accuracy</div>
+            <div class="sf-desc">Trained on Indian spice mandis &amp; trade formats</div>
+          </div>
+          <div class="scan-feat-box">
+            <div class="sf-icon">🛡️</div>
+            <div class="sf-title">Pre-Verification</div>
+            <div class="sf-desc">Review extracted fields before cloud save</div>
+          </div>
+        </div>
 
         <div class="scan-preview" id="scan-preview" style="display:none;">
           <img id="scan-preview-img" src="" alt="Invoice preview" />
@@ -350,16 +464,19 @@
         <div class="scanned-result" id="scanned-result" style="display:none;">
           <div class="scan-result-header">
             <svg viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" width="20" height="20"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-            <strong>AI Extraction Complete — Verify & Confirm Inward</strong>
+            <div>
+              <strong>AI Extraction Complete — Verify &amp; Confirm Inward</strong>
+              <div style="font-size:11.5px; font-weight:400; color:#047857; margin-top:2px;">Review the parsed values below. Edit any field if needed, then confirm to allot the official lot number.</div>
+            </div>
           </div>
           <div class="form-grid scanned-fields" id="scanned-fields">
             <!-- Dynamically populated fields -->
           </div>
-          <div class="form-actions">
-            <button class="action-btn" onclick="clearScan()">Clear Scan</button>
+          <div class="form-actions" style="margin-top:20px;">
+            <button class="action-btn" onclick="clearScan()">Discard Scan</button>
             <button class="action-btn primary-btn" onclick="confirmScan()">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              Confirm & Save to Register
+              Confirm &amp; Save to Register
             </button>
           </div>
         </div>
@@ -368,6 +485,28 @@
 
     <!-- ── SUMMARY VIEW ── -->
     <div class="view-panel" id="view-summary" style="display:none;">
+      <div class="summary-hero-strip">
+        <div class="shs-left">
+          <div class="shs-tag">EXECUTIVE PROCUREMENT INTELLIGENCE</div>
+          <h2 class="shs-title">Commodities Inward &amp; Expenditure Summary</h2>
+          <div class="shs-sub">Aggregated inventory receipt, total capital deployment, and average procurement costs across all raw spice varieties.</div>
+        </div>
+        <div class="shs-metrics">
+          <div class="shs-metric-item">
+            <span class="shs-m-lbl">SPICE VARIETIES</span>
+            <span class="shs-m-val" id="sum-stat-varieties">12</span>
+          </div>
+          <div class="shs-metric-item">
+            <span class="shs-m-lbl">TOTAL STOCK INWARD</span>
+            <span class="shs-m-val" id="sum-stat-kg">21,375 KG</span>
+          </div>
+          <div class="shs-metric-item">
+            <span class="shs-m-lbl">CAPITAL DEPLOYED</span>
+            <span class="shs-m-val highlight" id="sum-stat-val">₹41,28,850</span>
+          </div>
+        </div>
+      </div>
+
       <div class="summary-grid" id="summary-grid">
         <!-- Rendered by JS -->
       </div>
@@ -381,49 +520,73 @@
   <div class="modal-box" onclick="event.stopPropagation()">
     <div class="modal-header">
       <div class="modal-title-with-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#E60023" stroke-width="2" width="22" height="22"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M8 13h8"/><path d="M8 17h8"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="#ED0926" stroke-width="2" width="22" height="22"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M8 13h8"/><path d="M8 17h8"/></svg>
         <h3>Download Raw Material Inward Excel (.xlsx)</h3>
       </div>
       <button class="modal-close" onclick="closeExportModal()">✕</button>
     </div>
     <div class="modal-body">
-      <p style="color:#64748B; font-size:13px; margin-bottom:16px;">Download official FSSAI Schedule 4 formatted Raw Material Inward registers.</p>
+      <p style="color:#64748B; font-size:13px; margin-bottom:16px;">Download official FSSAI Schedule 4 formatted Raw Material Inward registers with verified weights, lots and Mandi challan references.</p>
       
       <div class="export-options-grid">
         <button class="export-option-card" onclick="exportReport('daily')">
-          <div class="eoc-icon">📅</div>
-          <div class="eoc-content">
-            <strong>Today's Inward Log</strong>
-            <span>Consignments received today with supplier lots & weights</span>
+          <div class="eoc-icon-box eoc-green">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
           </div>
-          <div class="eoc-arrow">→</div>
+          <div class="eoc-content">
+            <div class="eoc-tag-row"><span class="eoc-tag tag-daily">DAILY REPORT</span><span class="eoc-badge">18 Oct 2026</span></div>
+            <strong>Today's Inward Consignment Log (.xlsx)</strong>
+            <span>Consignments received today with supplier lots, truck numbers &amp; net weights</span>
+          </div>
+          <div class="eoc-download-pill">
+            <span>Download</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          </div>
         </button>
 
         <button class="export-option-card" onclick="exportReport('weekly')">
-          <div class="eoc-icon">📆</div>
-          <div class="eoc-content">
-            <strong>This Week's Inward Summary</strong>
-            <span>Monday to Sunday procurement totals & lot tracking</span>
+          <div class="eoc-icon-box eoc-blue">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
           </div>
-          <div class="eoc-arrow">→</div>
+          <div class="eoc-content">
+            <div class="eoc-tag-row"><span class="eoc-tag tag-weekly">WEEKLY REPORT</span><span class="eoc-badge">Past 7 Days</span></div>
+            <strong>This Week's Procurement Summary (.xlsx)</strong>
+            <span>Monday to Sunday procurement totals, lot tracking &amp; weighted average rates</span>
+          </div>
+          <div class="eoc-download-pill">
+            <span>Download</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          </div>
         </button>
 
-        <button class="export-option-card" onclick="exportReport('october')">
-          <div class="eoc-icon">📊</div>
-          <div class="eoc-content">
-            <strong>October 2026 Full Register</strong>
-            <span>Complete month inward record (all 18 lots with total ₹ procurement)</span>
+        <button class="export-option-card" onclick="exportReport('monthly')">
+          <div class="eoc-icon-box eoc-red">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
           </div>
-          <div class="eoc-arrow">→</div>
+          <div class="eoc-content">
+            <div class="eoc-tag-row"><span class="eoc-tag tag-monthly">MONTHLY AUDIT</span><span class="eoc-badge">October 2026</span></div>
+            <strong>October 2026 Full Register (.xlsx)</strong>
+            <span>Official FSSAI Schedule 4 monthly audit register with all consignments &amp; QA status</span>
+          </div>
+          <div class="eoc-download-pill">
+            <span>Download</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          </div>
         </button>
 
         <button class="export-option-card" onclick="exportReport('all')">
-          <div class="eoc-icon">🗄️</div>
+          <div class="eoc-icon-box eoc-purple">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+          </div>
           <div class="eoc-content">
-            <strong>All Records (Complete Audit Log)</strong>
+            <div class="eoc-tag-row"><span class="eoc-tag tag-all">ALL-TIME DUMP</span><span class="eoc-badge">Complete History</span></div>
+            <strong>All Records (Complete Audit Log) (.xlsx)</strong>
             <span>Full historical dump stored in Cloud Firestore</span>
           </div>
-          <div class="eoc-arrow">→</div>
+          <div class="eoc-download-pill">
+            <span>Download</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          </div>
         </button>
       </div>
 

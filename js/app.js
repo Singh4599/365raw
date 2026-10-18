@@ -40,6 +40,14 @@ let editingId = null;
 let deletingId = null;
 let currentView = 'register';
 let scannedCandidate = null;
+let periodFilter = 'all'; // 'all' | 'daily' | 'weekly' | 'monthly'
+
+function getEffectiveToday() {
+  const realToday = new Date().toISOString().slice(0, 10);
+  const hasReal = entries.some(e => e.date === realToday);
+  if (hasReal) return realToday;
+  return "2026-10-18";
+}
 
 // ──────────────────────────────────────────────────────────────────────────────
 // INIT & LOAD DATA
@@ -191,12 +199,44 @@ function renderTable(dataToRender = null) {
   }
 }
 
+function updatePeriodCounts() {
+  const effToday = getEffectiveToday();
+  const allCount = entries.length;
+  const dailyCount = entries.filter(e => e.date === effToday).length;
+  const weeklyCount = entries.filter(e => e.date >= "2026-10-12" && e.date <= effToday).length;
+  const monthlyCount = entries.filter(e => (e.date || '').startsWith('2026-10')).length;
+
+  const elAll = document.getElementById('pill-all-count');
+  if (elAll) elAll.textContent = allCount;
+  const elDaily = document.getElementById('pill-daily-count');
+  if (elDaily) elDaily.textContent = dailyCount;
+  const elWeekly = document.getElementById('pill-weekly-count');
+  if (elWeekly) elWeekly.textContent = weeklyCount;
+  const elMonthly = document.getElementById('pill-monthly-count');
+  if (elMonthly) elMonthly.textContent = monthlyCount;
+}
+
+window.setPeriodFilter = function(period) {
+  periodFilter = period;
+  document.querySelectorAll('.period-pill').forEach(btn => {
+    btn.classList.toggle('active', btn.id === `pill-${period}`);
+  });
+  renderTable();
+  updateStats();
+};
+
 function updateStats() {
-  const totalEntries = entries.length;
+  updatePeriodCounts();
+
+  const currentDataset = getFilteredData();
+  const isFiltered = periodFilter !== 'all';
+  const dataForKpi = isFiltered ? currentDataset : entries;
+
+  const totalEntries = dataForKpi.length;
   let totalKg = 0;
   let totalVal = 0;
 
-  entries.forEach(e => {
+  dataForKpi.forEach(e => {
     const q = parseFloat(e.qty) || 0;
     const r = parseFloat(e.rate) || 0;
     const t = parseFloat(e.total) || (q * r);
@@ -206,36 +246,59 @@ function updateStats() {
 
   const octCount = entries.filter(e => (e.date || '').startsWith('2026-10')).length;
 
-  document.getElementById('s-total-entries').textContent = totalEntries;
-  document.getElementById('s-total-kg').textContent = `${formatNum(totalKg)} KG`;
-  document.getElementById('s-total-val').textContent = `₹${formatNum(totalVal)}`;
-  document.getElementById('s-this-month').textContent = octCount;
+  const elEntries = document.getElementById('s-total-entries');
+  if (elEntries) elEntries.textContent = totalEntries;
+  const elKg = document.getElementById('s-total-kg');
+  if (elKg) elKg.textContent = `${formatNum(totalKg)} KG`;
+  const elVal = document.getElementById('s-total-val');
+  if (elVal) elVal.textContent = `₹${formatNum(totalVal)}`;
+  const elMonth = document.getElementById('s-this-month');
+  if (elMonth) elMonth.textContent = isFiltered ? totalEntries : octCount;
 }
 
 function getFilteredData() {
   const search = (document.getElementById('search-input')?.value || '').toLowerCase().trim();
   const month = document.getElementById('month-filter')?.value || '';
+  const effToday = getEffectiveToday();
 
   return entries.filter(e => {
+    // 1. Quick Period Filtering
+    if (periodFilter === 'daily') {
+      if (e.date !== effToday) return false;
+    } else if (periodFilter === 'weekly') {
+      if (e.date < "2026-10-12" || e.date > effToday) return false;
+    } else if (periodFilter === 'monthly') {
+      if (!(e.date || '').startsWith('2026-10')) return false;
+    }
+
+    // 2. Text Search Filtering
     const matchSearch = !search ||
       (e.material || '').toLowerCase().includes(search) ||
       (e.supplier || '').toLowerCase().includes(search) ||
       (e.invoice || '').toLowerCase().includes(search) ||
       (e.ourLot || '').toLowerCase().includes(search);
 
-    const matchMonth = !month || (e.date || '').startsWith(month);
+    // 3. Month Input Filtering (only if period is 'all')
+    const matchMonth = periodFilter !== 'all' || !month || (e.date || '').startsWith(month);
+
     return matchSearch && matchMonth;
   });
 }
 
 window.applyFilters = function() {
   renderTable();
+  updateStats();
 };
 
 window.clearFilters = function() {
+  periodFilter = 'all';
+  document.querySelectorAll('.period-pill').forEach(btn => {
+    btn.classList.toggle('active', btn.id === 'pill-all');
+  });
   if (document.getElementById('search-input')) document.getElementById('search-input').value = '';
   if (document.getElementById('month-filter')) document.getElementById('month-filter').value = '';
   renderTable();
+  updateStats();
 };
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -502,13 +565,14 @@ window.exportReport = function(type) {
   let fileName = "";
 
   if (type === 'daily') {
-    const today = "2026-10-18";
+    const today = getEffectiveToday();
     dataToExport = entries.filter(e => e.date === today);
     fileName = `LV_Spices_Raw_Material_Daily_${today}.xlsx`;
   } else if (type === 'weekly') {
-    dataToExport = entries.slice(0, 10);
+    const effToday = getEffectiveToday();
+    dataToExport = entries.filter(e => e.date >= "2026-10-12" && e.date <= effToday);
     fileName = `LV_Spices_Raw_Material_Weekly_Summary.xlsx`;
-  } else if (type === 'october') {
+  } else if (type === 'october' || type === 'monthly') {
     dataToExport = entries.filter(e => (e.date || '').startsWith('2026-10'));
     fileName = `LV_Spices_Raw_Material_Register_October_2026.xlsx`;
   } else if (type === 'all') {
@@ -604,39 +668,114 @@ window.exportReport = function(type) {
 };
 
 // ──────────────────────────────────────────────────────────────────────────────
-// SUMMARY VIEW
+// SUMMARY VIEW (EXECUTIVE PROCUREMENT DASHBOARD)
 // ──────────────────────────────────────────────────────────────────────────────
+function getSpiceIcon(name = '') {
+  const n = name.toLowerCase();
+  if (n.includes('jeera') || n.includes('cumin')) return '🌿';
+  if (n.includes('chilli') || n.includes('mirch')) return '🌶️';
+  if (n.includes('dhaniya') || n.includes('coriander')) return '🌿';
+  if (n.includes('haldi') || n.includes('turmeric')) return '✨';
+  if (n.includes('namak') || n.includes('salt')) return '🧂';
+  if (n.includes('jaiphal') || n.includes('nutmeg')) return '🌰';
+  if (n.includes('kasuri')) return '🍃';
+  if (n.includes('methi') || n.includes('fenugreek')) return '🌾';
+  if (n.includes('amchur') || n.includes('mango')) return '🍋';
+  if (n.includes('pepper')) return '⚫';
+  if (n.includes('cardamom')) return '🌱';
+  if (n.includes('clove')) return '🍂';
+  if (n.includes('cinnamon')) return '🪵';
+  if (n.includes('mace') || n.includes('javitri')) return '🌸';
+  if (n.includes('ginger') || n.includes('sonth')) return '🫚';
+  if (n.includes('bay leaf') || n.includes('tej patta')) return '🍃';
+  if (n.includes('star anise') || n.includes('chakri')) return '⭐';
+  if (n.includes('mustard') || n.includes('rai')) return '🟡';
+  if (n.includes('fennel') || n.includes('saunf')) return '🌿';
+  return '🌿';
+}
+
 function renderSummary() {
   const container = document.getElementById('summary-grid');
   if (!container) return;
 
   const matMap = {};
+  let grandTotalKg = 0;
+  let grandTotalVal = 0;
+
   entries.forEach(e => {
-    const mat = e.material || 'Other';
-    if (!matMap[mat]) matMap[mat] = { qty: 0, val: 0, count: 0 };
+    const mat = e.material || 'Other Raw Material';
+    if (!matMap[mat]) matMap[mat] = { qty: 0, val: 0, count: 0, name: mat };
     const q = parseFloat(e.qty) || 0;
     const t = parseFloat(e.total) || (q * (parseFloat(e.rate) || 0));
     matMap[mat].qty += q;
     matMap[mat].val += t;
     matMap[mat].count += 1;
+    grandTotalKg += q;
+    grandTotalVal += t;
   });
+
+  const varietiesCount = Object.keys(matMap).length;
+
+  // Update Top Hero Ribbon
+  const elVar = document.getElementById('sum-stat-varieties');
+  if (elVar) elVar.textContent = varietiesCount;
+  const elKg = document.getElementById('sum-stat-kg');
+  if (elKg) elKg.textContent = `${formatNum(grandTotalKg)} KG`;
+  const elVal = document.getElementById('sum-stat-val');
+  if (elVal) elVal.textContent = `₹${formatNum(grandTotalVal)}`;
 
   const cardsHtml = Object.keys(matMap).map(mat => {
     const item = matMap[mat];
+    const icon = getSpiceIcon(mat);
+    const avgRate = item.qty > 0 ? (item.val / item.qty).toFixed(2) : '0.00';
+    const pctOfTotal = grandTotalKg > 0 ? ((item.qty / grandTotalKg) * 100).toFixed(1) : 0;
+
+    let mainTitle = mat;
+    let subTitle = 'FSSAI Schedule 4 Inward Lot';
+    if (mat.includes('(') && mat.includes(')')) {
+      const idx = mat.indexOf('(');
+      mainTitle = mat.substring(0, idx).trim();
+      subTitle = mat.substring(idx + 1, mat.lastIndexOf(')')).trim();
+    }
+
     return `
       <div class="summary-card">
-        <div class="sc-title">${escapeHtml(mat)}</div>
-        <div class="sc-grid">
-          <div>
-            <div class="sc-num">${formatNum(item.qty)} KG</div>
-            <div class="sc-lbl">Total Stock Inward</div>
+        <div class="sc-card-header">
+          <div class="sc-header-left">
+            <div class="sc-spice-badge">${icon}</div>
+            <div class="sc-title-group">
+              <div class="sc-title-main">${escapeHtml(mainTitle)}</div>
+              <div class="sc-title-sub">${escapeHtml(subTitle)}</div>
+            </div>
           </div>
-          <div>
-            <div class="sc-num" style="color:#065F46;">₹${formatNum(item.val)}</div>
-            <div class="sc-lbl">Total Spend</div>
+          <span class="sc-lot-count">${item.count} ${item.count === 1 ? 'Consignment' : 'Consignments'}</span>
+        </div>
+
+        <div class="sc-grid">
+          <div class="sc-stat-box">
+            <div class="sc-stat-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M6 7h12l1 13H5L6 7z"></path></svg>
+              <span>Total Weight</span>
+            </div>
+            <div class="sc-stat-val">${formatNum(item.qty)} KG</div>
+            <div class="sc-stat-bar-wrap" title="${pctOfTotal}% of total stock">
+              <div class="sc-stat-bar-fill" style="width: ${Math.min(pctOfTotal * 3, 100)}%;"></div>
+            </div>
+          </div>
+
+          <div class="sc-stat-box">
+            <div class="sc-stat-label">
+              <span>Total Spend</span>
+            </div>
+            <div class="sc-stat-val val-green">₹${formatNum(item.val)}</div>
+            <div style="font-size:10.5px; color:var(--text-muted); margin-top:8px;">${pctOfTotal}% Share</div>
           </div>
         </div>
-        <div class="sc-sub">${item.count} Inward Consignments Received</div>
+
+        <div class="sc-card-footer">
+          <span>Weighted Average Inward Rate:</span>
+          <span class="sc-rate-tag">Avg. ₹${formatNum(avgRate)} / KG</span>
+        </div>
       </div>
     `;
   }).join('');
