@@ -1,8 +1,8 @@
 // app.js — L V Spices Raw Material Inward Register
 // FSSAI Quality & Traceability with Firebase Firestore Cloud Sync & Gemini Vision AI
 
-import { saveEntryToCloud, deleteEntryFromCloud, loadAllRawEntriesFromCloud, updateCloudBadge } from './firebase-config.js';
-import { scanRawMaterialInvoice } from './ocr.js';
+import { saveEntryToCloud, deleteEntryFromCloud, loadAllRawEntriesFromCloud, updateCloudBadge } from './firebase-config.js?v=2.7.2';
+import { scanRawMaterialInvoice } from './ocr.js?v=2.7.2';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // OCTOBER 2026 PRE-POPULATED REALISTIC CONSIGNMENTS
@@ -25,7 +25,11 @@ const OCTOBER_PRELOAD_DATA = [
   { id: 15, date: "2026-10-16", material: "Mace (Javitri Golden Flower)", supplier: "Malabar Spices Co, Cochin", invoice: "INV-MC-114", supplierLot: "CCH-JAV-055", ourLot: "RM-OCT-015", qty: 75, rate: 1950, total: 146250, quality: "Passed / Food Grade" },
   { id: 16, date: "2026-10-17", material: "Amchur (Dry Mango Slice Premium)", supplier: "Bareilly Krishi Udyog, UP", invoice: "INV-BR-781", supplierLot: "BRL-AMC-902", ourLot: "RM-OCT-016", qty: 500, rate: 190, total: 95000, quality: "Passed / Food Grade" },
   { id: 17, date: "2026-10-18", material: "Cumin Seeds (Jeera Machine Clean)", supplier: "Unjha Commodity Merchants", invoice: "INV-UNJ-4491", supplierLot: "UNJ-26-950", ourLot: "RM-OCT-017", qty: 1500, rate: 282, total: 423000, quality: "Passed / Food Grade" },
-  { id: 18, date: "2026-10-18", material: "Red Chilli (Guntur Teja S17)", supplier: "Krishna River Spice Traders", invoice: "INV-KRS-901", supplierLot: "GNT-TJ-301", ourLot: "RM-OCT-018", qty: 1000, rate: 230, total: 230000, quality: "Passed / Food Grade" }
+  { id: 18, date: "2026-10-18", material: "Red Chilli (Guntur Teja S17)", supplier: "Krishna River Spice Traders", invoice: "INV-KRS-901", supplierLot: "GNT-TJ-301", ourLot: "RM-OCT-018", qty: 1000, rate: 230, total: 230000, quality: "Passed / Food Grade" },
+  { id: 19, date: "2026-10-18", material: "Nutmeg Whole / Jaiphal (Grade A1 Selected)", supplier: "Malabar Spice Producers Co-op, Kerala", invoice: "INV-KER-5091", supplierLot: "KL-NUT-410", ourLot: "RM-OCT-019", qty: 350, rate: 620, total: 217000, quality: "Passed / Food Grade" },
+  { id: 20, date: "2026-10-18", material: "Kasuri Methi (Nagauri Dried Fenugreek Leaves)", supplier: "Marwar Agri Farm Producer, Nagaur Mandi", invoice: "INV-NAG-3320", supplierLot: "NGR-KM-108", ourLot: "RM-OCT-020", qty: 800, rate: 145, total: 116000, quality: "Passed / Food Grade" },
+  { id: 21, date: "2026-10-18", material: "Black Salt Lumps (Kala Namak Natural Crystal)", supplier: "Rajasthan Minerals & Salt Syndicate, Sambhar", invoice: "INV-SMB-7801", supplierLot: "SBR-KN-552", ourLot: "RM-OCT-021", qty: 2500, rate: 28, total: 70000, quality: "Passed / Food Grade" },
+  { id: 22, date: "2026-10-18", material: "Coriander Seeds (Dhaniya Badami Selected)", supplier: "Hadoti Spice Traders, Ramganj Mandi", invoice: "INV-RGM-1192", supplierLot: "RGM-DH-771", ourLot: "RM-OCT-022", qty: 1800, rate: 112, total: 201600, quality: "Passed / Food Grade" }
 ];
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -52,21 +56,28 @@ async function initData() {
   }
 
   // 2. Load from Firebase Cloud
-  const cloudList = await loadAllRawEntriesFromCloud();
-  if (cloudList && cloudList.length > 0) {
-    entries = cloudList;
-    localStorage.setItem('lv_raw_entries', JSON.stringify(entries));
+  try {
+    const cloudList = await loadAllRawEntriesFromCloud();
+    if (cloudList && cloudList.length > 0) {
+      entries = cloudList;
+    }
+  } catch (err) {
+    console.warn('[Firebase] Load error, using local fallback:', err);
   }
 
-  // 3. If empty, seed October 2026 records!
-  if (entries.length === 0) {
-    entries = [...OCTOBER_PRELOAD_DATA];
-    localStorage.setItem('lv_raw_entries', JSON.stringify(entries));
+  // 3. Ensure baseline consignments from OCTOBER_PRELOAD_DATA are all populated
+  let updated = false;
+  OCTOBER_PRELOAD_DATA.forEach(preloadItem => {
+    const exists = entries.some(e => String(e.id) === String(preloadItem.id) || e.ourLot === preloadItem.ourLot);
+    if (!exists) {
+      entries.push(preloadItem);
+      updated = true;
+      saveEntryToCloud(preloadItem).catch(() => {});
+    }
+  });
 
-    // Async upload to Firestore Cloud
-    entries.forEach(item => {
-      saveEntryToCloud(item).catch(() => {});
-    });
+  if (updated || !local) {
+    localStorage.setItem('lv_raw_entries', JSON.stringify(entries));
   }
 
   updateSupplierList();
@@ -616,6 +627,7 @@ function renderSummary() {
 // VIEW SWITCHER
 // ──────────────────────────────────────────────────────────────────────────────
 window.switchView = function(view) {
+  if (window.closeSidebar) window.closeSidebar();
   currentView = view;
   document.querySelectorAll('.nav-link').forEach(el => {
     el.classList.toggle('active', el.dataset.view === view);
@@ -632,6 +644,14 @@ window.switchView = function(view) {
 
 window.toggleSidebar = function() {
   document.getElementById('sidebar').classList.toggle('open');
+  const overlay = document.getElementById('sidebar-overlay');
+  if (overlay) overlay.classList.toggle('show');
+};
+
+window.closeSidebar = function() {
+  document.getElementById('sidebar').classList.remove('open');
+  const overlay = document.getElementById('sidebar-overlay');
+  if (overlay) overlay.classList.remove('show');
 };
 
 function formatNum(n) {
@@ -661,6 +681,8 @@ function showToast(msg) {
 // ──────────────────────────────────────────────────────────────────────────────
 // INITIALIZE
 // ──────────────────────────────────────────────────────────────────────────────
-window.addEventListener('DOMContentLoaded', () => {
+if (document.readyState === 'loading') {
+  window.addEventListener('DOMContentLoaded', () => initData());
+} else {
   initData();
-});
+}

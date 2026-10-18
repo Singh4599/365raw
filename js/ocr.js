@@ -1,7 +1,7 @@
 // ocr.js — Gemini Vision AI OCR Engine for LV Spices Raw Material Invoices
 // Uses Gemini 2.5 Flash with Canvas compression and 5 rotating keys
 
-import { getActiveGeminiKey, rotateGeminiKey, GEMINI_KEYS } from './keys.js';
+import { getActiveGeminiKey, rotateGeminiKey, GEMINI_KEYS } from './keys.js?v=2.7.2';
 
 export function resizeImageToCanvas(file, maxDimension = 1600) {
   return new Promise((resolve, reject) => {
