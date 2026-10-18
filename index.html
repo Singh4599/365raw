@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LV Spices — Raw Material Inward Register</title>
-  <meta name="description" content="LV Spices Raw Material Inward Register — track supplier invoices, lot numbers, qty and rates." />
+  <title>L V Spices — Raw Material Inward Register</title>
+  <meta name="description" content="L V Spices Raw Material Inward Register — FSSAI Schedule 4 Quality & Traceability Inward Lot Records." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <!-- SheetJS for Excel Export -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <link rel="stylesheet" href="css/app.css" />
@@ -16,14 +16,19 @@
 
 <div class="app-shell">
 
-  <!-- ── SIDEBAR (Courier style) ── -->
+  <!-- ── SIDEBAR (Courier Scanner Red Accent) ── -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo-area">
-      <div class="logo-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20"><path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+      <div class="brand-crest-wrap">
+        <svg viewBox="0 0 44 44" fill="none" class="brand-crest-svg">
+          <circle cx="22" cy="22" r="21" fill="#E60023" stroke="#D4AF37" stroke-width="1.5"/>
+          <circle cx="22" cy="22" r="18" fill="none" stroke="#D4AF37" stroke-dasharray="2 2" stroke-width="0.8"/>
+          <path d="M22 8L24 14L30 16L24 18L22 24L20 18L14 16L20 14Z" fill="#D4AF37"/>
+          <text x="22" y="32" font-family="'Inter', sans-serif" font-size="7.5" font-weight="900" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.5">LV SPICES</text>
+        </svg>
       </div>
       <div class="logo-text">
-        <div class="logo-brand">LV Spices</div>
+        <div class="logo-brand">L V Spices</div>
         <div class="logo-sub">Raw Material Register</div>
       </div>
     </div>
@@ -35,23 +40,24 @@
       </a>
       <a class="nav-link" data-view="add" onclick="switchView('add')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-        Add New Entry
+        Add Inward Entry
       </a>
       <a class="nav-link" data-view="scan" onclick="switchView('scan')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-        Scan Invoice (OCR)
+        Scan Invoice (AI OCR)
       </a>
       <a class="nav-link" data-view="summary" onclick="switchView('summary')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-        Summary & Stats
+        Commodities Summary
       </a>
     </nav>
 
     <div class="sidebar-footer">
-      <div class="live-dot-row">
-        <span class="ldot"></span>
-        <span>Auto-Synced</span>
+      <div class="cloud-status-pill connected" id="cloud-status-badge">
+        <span class="cloud-dot"></span>
+        <span id="cloud-status-text">Cloud Synced (Firestore)</span>
       </div>
+      <div class="fssai-sub-pill">FSSAI Raw Material Inward Standard</div>
     </div>
   </aside>
 
@@ -64,68 +70,90 @@
         <button class="mobile-toggle" onclick="toggleSidebar()" id="mobile-toggle">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         </button>
-        <h1 class="header-title" id="header-title">Raw Material Inward Register</h1>
+        <div>
+          <h1 class="header-title" id="header-title">Raw Material Inward Register</h1>
+          <div class="header-subtitle">Purchase Dates • Mandi Challans • Lots & Quality Status</div>
+        </div>
       </div>
       <div class="header-right" id="header-actions">
-        <!-- Actions injected per view -->
+        <!-- Excel Export Button -->
+        <button class="action-btn excel-btn" onclick="openExportModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M8 13h8"/><path d="M8 17h8"/></svg>
+          Export Excel (.xlsx)
+        </button>
+        <button class="action-btn primary-btn" onclick="switchView('add')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Inward
+        </button>
       </div>
     </header>
 
     <!-- ── REGISTER VIEW ── -->
     <div class="view-panel" id="view-register">
+
+      <!-- Official Title Banner -->
+      <div class="official-banner">
+        <div class="ob-left">
+          <div class="ob-company">L V SPICES</div>
+          <div class="ob-doc">RAW MATERIAL INWARD & QUALITY LOG REGISTER</div>
+          <div class="ob-fssai">FSSAI Schedule 4 GMP Compliance • Raw Material Receipt & Traceability</div>
+        </div>
+        <div class="ob-right">
+          <div class="ob-tag">Month: October 2026</div>
+          <div class="ob-tag">Supervisor: Mukesh Vora</div>
+        </div>
+      </div>
+
       <!-- Stats Bar -->
       <div class="stats-bar" id="stats-bar">
         <div class="stat-box">
           <div class="stat-num" id="s-total-entries">0</div>
-          <div class="stat-lbl">Total Entries</div>
+          <div class="stat-lbl">Inward Consignments</div>
         </div>
         <div class="stat-box">
-          <div class="stat-num" id="s-total-kg">0</div>
-          <div class="stat-lbl">Total KG</div>
+          <div class="stat-num" id="s-total-kg">0 KG</div>
+          <div class="stat-lbl">Total Weight Inward</div>
         </div>
         <div class="stat-box primary">
           <div class="stat-num" id="s-total-val">₹0</div>
-          <div class="stat-lbl">Total Value</div>
+          <div class="stat-lbl">Total Procurement Value</div>
         </div>
         <div class="stat-box">
-          <div class="stat-num" id="s-this-month">0</div>
-          <div class="stat-lbl">This Month</div>
+          <div class="stat-num" id="s-this-month">18</div>
+          <div class="stat-lbl">October 2026 Lots</div>
         </div>
       </div>
 
       <!-- Filters -->
       <div class="filter-bar">
-        <input class="filter-input" type="text" id="search-input" placeholder="Search material, supplier, invoice..." oninput="applyFilters()" />
-        <input class="filter-input date-input" type="month" id="month-filter" onchange="applyFilters()" />
+        <input class="filter-input" type="text" id="search-input" placeholder="Search spice, supplier, lot, invoice..." oninput="applyFilters()" />
+        <input class="filter-input date-input" type="month" id="month-filter" value="2026-10" onchange="applyFilters()" />
         <button class="filter-clear-btn" onclick="clearFilters()">Clear</button>
         <div style="flex:1"></div>
-        <button class="action-btn primary-btn" onclick="switchView('add')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Add Entry
-        </button>
-        <button class="action-btn" onclick="exportExcel()">
+        <button class="action-btn excel-btn" onclick="openExportModal()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Export Excel
+          Download Report
         </button>
       </div>
 
-      <!-- Table -->
+      <!-- Table matching Client Sheet Format -->
       <div class="table-card">
         <div class="table-scroll">
           <table class="rm-table" id="rm-table">
             <thead>
               <tr>
-                <th style="width:48px">Sr.</th>
-                <th style="width:100px">Date</th>
-                <th style="min-width:160px">Raw Material</th>
-                <th style="min-width:140px">Supplier</th>
-                <th style="width:110px">Invoice No.</th>
-                <th style="width:110px">Supplier Lot</th>
-                <th style="width:100px">Our Lot No.</th>
-                <th style="width:80px" class="num-col">Qty (KG)</th>
-                <th style="width:90px" class="num-col">Rate/KG (₹)</th>
-                <th style="width:100px" class="num-col">Total (₹)</th>
-                <th style="width:64px">Action</th>
+                <th style="width:48px; text-align:center;">Sr.</th>
+                <th style="width:105px;">Purchase Date</th>
+                <th style="min-width:170px;">Raw Material Name</th>
+                <th style="min-width:180px;">Supplier Name</th>
+                <th style="width:120px;">Invoice No.</th>
+                <th style="width:120px;">Supplier Lot / Vehicle</th>
+                <th style="width:110px;">Our Lot No.</th>
+                <th style="width:90px;" class="num-col">Qty (KG)</th>
+                <th style="width:95px;" class="num-col">Rate/KG (₹)</th>
+                <th style="width:110px;" class="num-col">Total (₹)</th>
+                <th style="width:120px; text-align:center;">Quality Status</th>
+                <th style="width:80px; text-align:center;">Action</th>
               </tr>
             </thead>
             <tbody id="rm-tbody">
@@ -138,9 +166,8 @@
         </div>
         <div class="empty-state" id="rm-empty" style="display:none;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48"><path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
-          <h3>No Records Yet</h3>
-          <p>Click "Add Entry" or "Scan Invoice" to get started.</p>
-          <button class="action-btn primary-btn" onclick="switchView('add')" style="margin-top:12px">Add First Entry</button>
+          <h3>No Records Found</h3>
+          <p>Click "Add Inward Entry" or "Scan Invoice" to record raw material receipt.</p>
         </div>
       </div>
     </div>
@@ -149,71 +176,79 @@
     <div class="view-panel" id="view-add" style="display:none;">
       <div class="form-card">
         <div class="form-card-header">
-          <h2 class="form-title">New Raw Material Entry</h2>
-          <span class="lot-badge" id="next-lot-preview">—</span>
+          <div>
+            <h2 class="form-title">Raw Material Inward Entry</h2>
+            <div style="font-size:12px; color:var(--text-secondary); margin-top:3px;">Record invoice, quality inspection and lot numbering</div>
+          </div>
+          <span class="lot-badge" id="next-lot-preview">Next Lot: RM-OCT-019</span>
         </div>
 
         <div class="form-grid">
           <div class="form-group">
             <label class="form-label">Purchase Date *</label>
-            <input class="form-input" type="date" id="f-date" max="" />
+            <input class="form-input" type="date" id="f-date" value="2026-10-18" />
           </div>
           <div class="form-group">
             <label class="form-label">Raw Material Name *</label>
             <div class="combo-wrap">
-              <input class="form-input" type="text" id="f-material" placeholder="Type or select..." list="material-list" autocomplete="off" />
+              <input class="form-input" type="text" id="f-material" placeholder="e.g. Cumin Seeds (Jeera)" list="material-list" autocomplete="off" />
               <datalist id="material-list">
-                <option value="Turmeric Whole">
-                <option value="Red Chilli">
-                <option value="Coriander Whole">
-                <option value="Cumin (Jeera)">
-                <option value="Black Pepper">
-                <option value="Cardamom">
-                <option value="Cloves">
-                <option value="Fennel Seeds">
-                <option value="Fenugreek">
-                <option value="Mustard Seeds">
-                <option value="Chilli Powder (Purchased)">
-                <option value="Salt (Raw)">
-                <option value="Bay Leaf">
-                <option value="Cinnamon">
-                <option value="Dried Ginger">
-                <option value="Garlic Powder">
-                <option value="Onion Powder">
-                <option value="Packaging Material">
+                <option value="Cumin Seeds (Jeera)">
+                <option value="Coriander Whole (Dhaniya)">
+                <option value="Turmeric Whole (Haldi)">
+                <option value="Red Chilli Whole (Teja / Kashmiri)">
+                <option value="Black Pepper (Malabar Garbled)">
+                <option value="Mustard Seeds (Small Rai)">
+                <option value="Fennel Seeds (Lucknowi Saunf)">
+                <option value="Fenugreek (Methi Dana)">
+                <option value="Green Cardamom (8mm Bold)">
+                <option value="Cloves (Zanzibar Quality)">
+                <option value="Bay Leaf (Tej Patta)">
+                <option value="Cinnamon Sticks (Ceylon Alba)">
+                <option value="Dried Ginger (Sonth)">
+                <option value="Star Anise (Chakri Phool)">
+                <option value="Mace (Javitri)">
+                <option value="Amchur (Dry Mango Slice)">
               </datalist>
             </div>
           </div>
           <div class="form-group">
             <label class="form-label">Supplier Name *</label>
-            <input class="form-input" type="text" id="f-supplier" placeholder="e.g., Ram Traders" list="supplier-list" />
-            <datalist id="supplier-list">
-              <!-- Auto-filled from existing records -->
-            </datalist>
+            <input class="form-input" type="text" id="f-supplier" placeholder="e.g., Patel Agro Commodities, Unjha Mandi" list="supplier-list" />
+            <datalist id="supplier-list"></datalist>
           </div>
           <div class="form-group">
-            <label class="form-label">Invoice No. *</label>
-            <input class="form-input" type="text" id="f-invoice" placeholder="e.g., INV-2024-001" />
+            <label class="form-label">Invoice / Challan No. *</label>
+            <input class="form-input" type="text" id="f-invoice" placeholder="e.g., INV-2026-8812" />
           </div>
           <div class="form-group">
-            <label class="form-label">Supplier Batch/Lot No.</label>
-            <input class="form-input" type="text" id="f-supplier-lot" placeholder="e.g., LOT-2024-A1" />
+            <label class="form-label">Supplier Lot / Truck No.</label>
+            <input class="form-input" type="text" id="f-supplier-lot" placeholder="e.g., RJ-14-GA-8821 / BATCH-01" />
           </div>
           <div class="form-group">
             <label class="form-label">Our Inward Lot No. (Auto)</label>
-            <input class="form-input" type="text" id="f-our-lot" readonly style="background:var(--bg-subtle);color:var(--text-muted);cursor:not-allowed" />
+            <input class="form-input" type="text" id="f-our-lot" readonly style="background:#F1F5F9; color:#0F172A; font-weight:700; cursor:not-allowed" />
           </div>
           <div class="form-group">
             <label class="form-label">Quantity (KG) *</label>
-            <input class="form-input" type="number" id="f-qty" placeholder="0.00" step="0.01" min="0" oninput="calcTotal()" />
+            <input class="form-input" type="number" id="f-qty" placeholder="1000" step="0.1" min="0" oninput="calcTotal()" />
           </div>
           <div class="form-group">
             <label class="form-label">Rate per KG (₹) *</label>
-            <input class="form-input" type="number" id="f-rate" placeholder="0.00" step="0.01" min="0" oninput="calcTotal()" />
+            <input class="form-input" type="number" id="f-rate" placeholder="280.00" step="0.01" min="0" oninput="calcTotal()" />
           </div>
           <div class="form-group">
             <label class="form-label">Total Value (₹)</label>
-            <input class="form-input" type="text" id="f-total" readonly style="background:var(--green-light);color:var(--green);font-weight:700;cursor:not-allowed" />
+            <input class="form-input" type="text" id="f-total" readonly style="background:#ECFDF5; color:#065F46; font-weight:800; font-size:15px; cursor:not-allowed" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Quality Status</label>
+            <select class="form-input" id="f-quality">
+              <option value="Passed / Food Grade" selected>Passed / Food Grade (Moisture & Aroma Checked)</option>
+              <option value="Approved with Minor Sorting">Approved with Minor Sorting</option>
+              <option value="Under Lab Testing">Under Lab Testing</option>
+              <option value="Rejected / Returned">Rejected / Returned</option>
+            </select>
           </div>
         </div>
 
@@ -221,30 +256,30 @@
           <button class="action-btn" onclick="switchView('register')">Cancel</button>
           <button class="action-btn primary-btn" onclick="submitEntry()" id="submit-btn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
-            Save Entry
+            Save Inward Entry
           </button>
         </div>
 
         <div class="form-note" id="edit-note" style="display:none;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          Editing existing entry. Save to update.
+          Editing existing consignment record. Save will update Firestore Cloud.
         </div>
       </div>
     </div>
 
-    <!-- ── SCAN VIEW ── -->
+    <!-- ── REAL GEMINI AI SCAN VIEW ── -->
     <div class="view-panel" id="view-scan" style="display:none;">
       <div class="scan-card">
         <div class="scan-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#E60023" stroke-width="2" width="48" height="48"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
         </div>
-        <h2 class="scan-title">Invoice Scanner (OCR)</h2>
-        <p class="scan-sub">Upload a supplier invoice image or PDF. Our OCR will extract the details automatically.</p>
+        <h2 class="scan-title">AI Invoice & Mandi Challan Scanner</h2>
+        <p class="scan-sub">Upload or capture any spice invoice, APMC Mandi bill or weighbridge slip. Gemini 2.5 Flash Vision extracts all fields instantly.</p>
 
         <div class="upload-zone" id="upload-zone" onclick="document.getElementById('scan-file-input').click()" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handleDrop(event)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="36" height="36"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          <div class="upload-text">Click to upload or drag & drop</div>
-          <div class="upload-sub">JPG, PNG, PDF — Max 10MB</div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="42" height="42"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <div class="upload-text">Click to upload bill image or take photo</div>
+          <div class="upload-sub">JPG, PNG, PDF receipts • Rotating 5 Gemini Vision API Keys</div>
         </div>
         <input type="file" id="scan-file-input" accept="image/*,.pdf" style="display:none" onchange="handleFileUpload(this)" />
 
@@ -254,22 +289,22 @@
 
         <div class="scan-progress" id="scan-progress" style="display:none;">
           <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progress-fill"></div></div>
-          <div class="progress-text" id="progress-text">Uploading...</div>
+          <div class="progress-text" id="progress-text">Initializing AI Vision...</div>
         </div>
 
         <div class="scanned-result" id="scanned-result" style="display:none;">
           <div class="scan-result-header">
-            <svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" width="18" height="18"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-            <strong>OCR Scan Complete — Review & Confirm</strong>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" width="20" height="20"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <strong>AI Extraction Complete — Verify & Confirm Inward</strong>
           </div>
           <div class="form-grid scanned-fields" id="scanned-fields">
-            <!-- Pre-filled scan fields -->
+            <!-- Dynamically populated fields -->
           </div>
           <div class="form-actions">
             <button class="action-btn" onclick="clearScan()">Clear Scan</button>
             <button class="action-btn primary-btn" onclick="confirmScan()">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              Confirm & Save
+              Confirm & Save to Register
             </button>
           </div>
         </div>
@@ -286,17 +321,84 @@
   </div><!-- end main-area -->
 </div><!-- end app-shell -->
 
+<!-- EXCEL EXPORT MODAL -->
+<div class="modal-backdrop" id="export-modal" style="display:none;" onclick="closeExportModal()">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title-with-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#E60023" stroke-width="2" width="22" height="22"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M8 13h8"/><path d="M8 17h8"/></svg>
+        <h3>Download Raw Material Inward Excel (.xlsx)</h3>
+      </div>
+      <button class="modal-close" onclick="closeExportModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="color:#64748B; font-size:13px; margin-bottom:16px;">Download official FSSAI Schedule 4 formatted Raw Material Inward registers.</p>
+      
+      <div class="export-options-grid">
+        <button class="export-option-card" onclick="exportReport('daily')">
+          <div class="eoc-icon">📅</div>
+          <div class="eoc-content">
+            <strong>Today's Inward Log</strong>
+            <span>Consignments received today with supplier lots & weights</span>
+          </div>
+          <div class="eoc-arrow">→</div>
+        </button>
+
+        <button class="export-option-card" onclick="exportReport('weekly')">
+          <div class="eoc-icon">📆</div>
+          <div class="eoc-content">
+            <strong>This Week's Inward Summary</strong>
+            <span>Monday to Sunday procurement totals & lot tracking</span>
+          </div>
+          <div class="eoc-arrow">→</div>
+        </button>
+
+        <button class="export-option-card" onclick="exportReport('october')">
+          <div class="eoc-icon">📊</div>
+          <div class="eoc-content">
+            <strong>October 2026 Full Register</strong>
+            <span>Complete month inward record (all 18 lots with total ₹ procurement)</span>
+          </div>
+          <div class="eoc-arrow">→</div>
+        </button>
+
+        <button class="export-option-card" onclick="exportReport('all')">
+          <div class="eoc-icon">🗄️</div>
+          <div class="eoc-content">
+            <strong>All Records (Complete Audit Log)</strong>
+            <span>Full historical dump stored in Cloud Firestore</span>
+          </div>
+          <div class="eoc-arrow">→</div>
+        </button>
+      </div>
+
+      <div class="custom-range-box">
+        <div style="font-weight:600; font-size:13px; margin-bottom:8px;">Custom Date Range:</div>
+        <div class="range-inputs">
+          <input type="date" id="export-from-date" class="form-input-sm" value="2026-10-01" />
+          <span>to</span>
+          <input type="date" id="export-to-date" class="form-input-sm" value="2026-10-18" />
+          <button class="action-btn excel-btn" style="padding:6px 12px; font-size:12px;" onclick="exportReport('custom')">Download Range</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="action-btn" onclick="closeExportModal()">Close</button>
+    </div>
+  </div>
+</div>
+
 <!-- Edit Modal -->
 <div class="modal-backdrop" id="modal-backdrop" style="display:none;" onclick="closeModal()">
   <div class="modal-box" onclick="event.stopPropagation()">
     <div class="modal-header">
-      <h3>Edit Entry</h3>
+      <h3>Edit Consignment Entry</h3>
       <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
     <div class="modal-body" id="modal-body"></div>
     <div class="modal-footer">
       <button class="action-btn" onclick="closeModal()">Cancel</button>
-      <button class="action-btn primary-btn" onclick="saveEditModal()">Save Changes</button>
+      <button class="action-btn primary-btn" onclick="saveEditModal()">Save Changes to Cloud</button>
     </div>
   </div>
 </div>
@@ -304,8 +406,8 @@
 <!-- Delete Confirm -->
 <div class="modal-backdrop" id="delete-backdrop" style="display:none;" onclick="closeDelete()">
   <div class="modal-box small" onclick="event.stopPropagation()">
-    <h3 style="margin-bottom:12px;font-size:15px;">Delete this entry?</h3>
-    <p style="color:var(--text-secondary);font-size:13px;margin-bottom:20px;">This action cannot be undone.</p>
+    <h3 style="margin-bottom:12px;font-size:15px;">Delete this consignment?</h3>
+    <p style="color:var(--text-secondary);font-size:13px;margin-bottom:20px;">This entry will be permanently deleted from Cloud Firestore.</p>
     <div class="modal-footer">
       <button class="action-btn" onclick="closeDelete()">Cancel</button>
       <button class="action-btn danger-btn" onclick="confirmDelete()">Delete</button>
@@ -316,6 +418,8 @@
 <!-- Toast -->
 <div class="toast-container" id="toast-container"></div>
 
+<script type="module" src="js/firebase-config.js"></script>
+<script type="module" src="js/ocr.js"></script>
 <script type="module" src="js/app.js"></script>
 </body>
 </html>

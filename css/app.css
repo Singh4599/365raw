@@ -382,3 +382,121 @@ body {
   .view-panel { padding:0 !important; }
   .table-card { box-shadow:none !important; border:1px solid #ddd !important; }
 }
+
+/* ── BRAND CREST & CLOUD STATUS ── */
+.brand-crest-wrap {
+  width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.brand-crest-svg {
+  width: 44px; height: 44px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.18));
+}
+
+.cloud-status-pill {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 11px; font-weight: 700; padding: 5px 12px;
+  border-radius: 9999px; margin-bottom: 6px;
+}
+.cloud-status-pill.connected {
+  background: #ECFDF5; color: #065F46; border: 1px solid #A7F3D0;
+}
+.cloud-status-pill.offline {
+  background: #FFFBEB; color: #92400E; border: 1px solid #FDE68A;
+}
+.cloud-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: #10B981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
+  animation: pulse-green 2s infinite;
+}
+.fssai-sub-pill {
+  font-size: 10px; font-weight: 700; color: #64748B;
+  background: #F1F5F9; border-radius: 4px; padding: 4px 8px;
+  letter-spacing: 0.04em; text-transform: uppercase;
+}
+
+.header-subtitle {
+  font-size: 12px; font-weight: 500; color: var(--text-muted); margin-top: 2px;
+}
+
+.excel-btn {
+  background: #047857 !important; color: #FFFFFF !important;
+  border: 1px solid #065F46 !important; font-weight: 700 !important;
+  display: inline-flex; align-items: center; gap: 6px;
+  box-shadow: 0 1px 3px rgba(4,120,87,0.2);
+}
+.excel-btn:hover {
+  background: #065F46 !important; transform: translateY(-1px);
+}
+
+/* Official Header Banner matching Client Sheet */
+.official-banner {
+  background: #FFFFFF; border: 1px solid #CBD5E1;
+  border-top: 4px solid var(--primary); border-radius: var(--radius-lg);
+  padding: 20px 26px; margin-bottom: 22px; box-shadow: var(--shadow-sm);
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 16px;
+}
+.ob-company {
+  font-size: 20px; font-weight: 900; letter-spacing: 1.5px;
+  color: #0F172A; text-transform: uppercase;
+}
+.ob-doc {
+  font-size: 14px; font-weight: 800; color: var(--primary);
+  margin-top: 3px; letter-spacing: 0.6px;
+}
+.ob-fssai {
+  font-size: 12px; font-weight: 500; color: #64748B; margin-top: 4px;
+}
+.ob-right {
+  display: flex; gap: 12px; flex-wrap: wrap;
+}
+.ob-tag {
+  background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: var(--radius-md);
+  padding: 8px 14px; font-size: 12.5px; font-weight: 700; color: #334155;
+}
+
+/* Action Icon Buttons in Table */
+.action-icon-btn {
+  width: 28px; height: 28px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border); background: var(--bg-surface);
+  color: var(--text-secondary); cursor: pointer; display: inline-flex;
+  align-items: center; justify-content: center; margin: 0 2px;
+  transition: all 0.15s ease;
+}
+.action-icon-btn:hover {
+  background: var(--bg-subtle); color: var(--text-main); border-color: var(--border-focus);
+}
+.action-icon-btn.danger:hover {
+  background: #FEE2E2; color: #DC2626; border-color: #FCA5A5;
+}
+
+/* Export Modal Styles */
+.export-options-grid {
+  display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;
+}
+.export-option-card {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 18px; border: 1px solid var(--border); border-radius: var(--radius-md);
+  background: var(--bg-surface); cursor: pointer; text-align: left;
+  transition: all 0.15s ease;
+}
+.export-option-card:hover {
+  border-color: #047857; background: #ECFDF5; transform: translateX(3px);
+}
+.eoc-icon { font-size: 22px; flex-shrink: 0; }
+.eoc-content { flex: 1; }
+.eoc-content strong { display: block; font-size: 13.5px; color: var(--text-main); margin-bottom: 2px; }
+.eoc-content span { font-size: 11.5px; color: var(--text-muted); }
+.eoc-arrow { font-size: 18px; color: #047857; font-weight: 800; }
+
+.custom-range-box {
+  background: #F8FAFC; border: 1px solid var(--border);
+  border-radius: var(--radius-md); padding: 14px;
+}
+.range-inputs {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 8px;
+}
+.form-input-sm {
+  border: 1px solid var(--border); border-radius: 4px; padding: 6px 10px;
+  font-size: 12.5px; background: #FFFFFF; font-family: inherit;
+}
+
