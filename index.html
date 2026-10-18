@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LV Spices — Raw Material Inward Register</title>
+  <meta name="description" content="LV Spices Raw Material Inward Register — track supplier invoices, lot numbers, qty and rates." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <!-- SheetJS for Excel Export -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <link rel="stylesheet" href="css/app.css" />
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ── SIDEBAR (Courier style) ── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo-area">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20"><path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+      </div>
+      <div class="logo-text">
+        <div class="logo-brand">LV Spices</div>
+        <div class="logo-sub">Raw Material Register</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a class="nav-link active" data-view="register" onclick="switchView('register')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Inward Register
+      </a>
+      <a class="nav-link" data-view="add" onclick="switchView('add')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        Add New Entry
+      </a>
+      <a class="nav-link" data-view="scan" onclick="switchView('scan')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Scan Invoice (OCR)
+      </a>
+      <a class="nav-link" data-view="summary" onclick="switchView('summary')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Summary & Stats
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="live-dot-row">
+        <span class="ldot"></span>
+        <span>Auto-Synced</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <div class="main-area">
+
+    <!-- HEADER -->
+    <header class="app-header" id="app-header">
+      <div class="header-left">
+        <button class="mobile-toggle" onclick="toggleSidebar()" id="mobile-toggle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <h1 class="header-title" id="header-title">Raw Material Inward Register</h1>
+      </div>
+      <div class="header-right" id="header-actions">
+        <!-- Actions injected per view -->
+      </div>
+    </header>
+
+    <!-- ── REGISTER VIEW ── -->
+    <div class="view-panel" id="view-register">
+      <!-- Stats Bar -->
+      <div class="stats-bar" id="stats-bar">
+        <div class="stat-box">
+          <div class="stat-num" id="s-total-entries">0</div>
+          <div class="stat-lbl">Total Entries</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num" id="s-total-kg">0</div>
+          <div class="stat-lbl">Total KG</div>
+        </div>
+        <div class="stat-box primary">
+          <div class="stat-num" id="s-total-val">₹0</div>
+          <div class="stat-lbl">Total Value</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num" id="s-this-month">0</div>
+          <div class="stat-lbl">This Month</div>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="filter-bar">
+        <input class="filter-input" type="text" id="search-input" placeholder="Search material, supplier, invoice..." oninput="applyFilters()" />
+        <input class="filter-input date-input" type="month" id="month-filter" onchange="applyFilters()" />
+        <button class="filter-clear-btn" onclick="clearFilters()">Clear</button>
+        <div style="flex:1"></div>
+        <button class="action-btn primary-btn" onclick="switchView('add')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Entry
+        </button>
+        <button class="action-btn" onclick="exportExcel()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export Excel
+        </button>
+      </div>
+
+      <!-- Table -->
+      <div class="table-card">
+        <div class="table-scroll">
+          <table class="rm-table" id="rm-table">
+            <thead>
+              <tr>
+                <th style="width:48px">Sr.</th>
+                <th style="width:100px">Date</th>
+                <th style="min-width:160px">Raw Material</th>
+                <th style="min-width:140px">Supplier</th>
+                <th style="width:110px">Invoice No.</th>
+                <th style="width:110px">Supplier Lot</th>
+                <th style="width:100px">Our Lot No.</th>
+                <th style="width:80px" class="num-col">Qty (KG)</th>
+                <th style="width:90px" class="num-col">Rate/KG (₹)</th>
+                <th style="width:100px" class="num-col">Total (₹)</th>
+                <th style="width:64px">Action</th>
+              </tr>
+            </thead>
+            <tbody id="rm-tbody">
+              <!-- Rendered by JS -->
+            </tbody>
+            <tfoot id="rm-tfoot">
+              <!-- Total row -->
+            </tfoot>
+          </table>
+        </div>
+        <div class="empty-state" id="rm-empty" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48"><path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+          <h3>No Records Yet</h3>
+          <p>Click "Add Entry" or "Scan Invoice" to get started.</p>
+          <button class="action-btn primary-btn" onclick="switchView('add')" style="margin-top:12px">Add First Entry</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ADD ENTRY VIEW ── -->
+    <div class="view-panel" id="view-add" style="display:none;">
+      <div class="form-card">
+        <div class="form-card-header">
+          <h2 class="form-title">New Raw Material Entry</h2>
+          <span class="lot-badge" id="next-lot-preview">—</span>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Purchase Date *</label>
+            <input class="form-input" type="date" id="f-date" max="" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Raw Material Name *</label>
+            <div class="combo-wrap">
+              <input class="form-input" type="text" id="f-material" placeholder="Type or select..." list="material-list" autocomplete="off" />
+              <datalist id="material-list">
+                <option value="Turmeric Whole">
+                <option value="Red Chilli">
+                <option value="Coriander Whole">
+                <option value="Cumin (Jeera)">
+                <option value="Black Pepper">
+                <option value="Cardamom">
+                <option value="Cloves">
+                <option value="Fennel Seeds">
+                <option value="Fenugreek">
+                <option value="Mustard Seeds">
+                <option value="Chilli Powder (Purchased)">
+                <option value="Salt (Raw)">
+                <option value="Bay Leaf">
+                <option value="Cinnamon">
+                <option value="Dried Ginger">
+                <option value="Garlic Powder">
+                <option value="Onion Powder">
+                <option value="Packaging Material">
+              </datalist>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Supplier Name *</label>
+            <input class="form-input" type="text" id="f-supplier" placeholder="e.g., Ram Traders" list="supplier-list" />
+            <datalist id="supplier-list">
+              <!-- Auto-filled from existing records -->
+            </datalist>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Invoice No. *</label>
+            <input class="form-input" type="text" id="f-invoice" placeholder="e.g., INV-2024-001" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Supplier Batch/Lot No.</label>
+            <input class="form-input" type="text" id="f-supplier-lot" placeholder="e.g., LOT-2024-A1" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Our Inward Lot No. (Auto)</label>
+            <input class="form-input" type="text" id="f-our-lot" readonly style="background:var(--bg-subtle);color:var(--text-muted);cursor:not-allowed" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Quantity (KG) *</label>
+            <input class="form-input" type="number" id="f-qty" placeholder="0.00" step="0.01" min="0" oninput="calcTotal()" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Rate per KG (₹) *</label>
+            <input class="form-input" type="number" id="f-rate" placeholder="0.00" step="0.01" min="0" oninput="calcTotal()" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Total Value (₹)</label>
+            <input class="form-input" type="text" id="f-total" readonly style="background:var(--green-light);color:var(--green);font-weight:700;cursor:not-allowed" />
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="action-btn" onclick="switchView('register')">Cancel</button>
+          <button class="action-btn primary-btn" onclick="submitEntry()" id="submit-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
+            Save Entry
+          </button>
+        </div>
+
+        <div class="form-note" id="edit-note" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Editing existing entry. Save to update.
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SCAN VIEW ── -->
+    <div class="view-panel" id="view-scan" style="display:none;">
+      <div class="scan-card">
+        <div class="scan-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        </div>
+        <h2 class="scan-title">Invoice Scanner (OCR)</h2>
+        <p class="scan-sub">Upload a supplier invoice image or PDF. Our OCR will extract the details automatically.</p>
+
+        <div class="upload-zone" id="upload-zone" onclick="document.getElementById('scan-file-input').click()" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handleDrop(event)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="36" height="36"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <div class="upload-text">Click to upload or drag & drop</div>
+          <div class="upload-sub">JPG, PNG, PDF — Max 10MB</div>
+        </div>
+        <input type="file" id="scan-file-input" accept="image/*,.pdf" style="display:none" onchange="handleFileUpload(this)" />
+
+        <div class="scan-preview" id="scan-preview" style="display:none;">
+          <img id="scan-preview-img" src="" alt="Invoice preview" />
+        </div>
+
+        <div class="scan-progress" id="scan-progress" style="display:none;">
+          <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progress-fill"></div></div>
+          <div class="progress-text" id="progress-text">Uploading...</div>
+        </div>
+
+        <div class="scanned-result" id="scanned-result" style="display:none;">
+          <div class="scan-result-header">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" width="18" height="18"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <strong>OCR Scan Complete — Review & Confirm</strong>
+          </div>
+          <div class="form-grid scanned-fields" id="scanned-fields">
+            <!-- Pre-filled scan fields -->
+          </div>
+          <div class="form-actions">
+            <button class="action-btn" onclick="clearScan()">Clear Scan</button>
+            <button class="action-btn primary-btn" onclick="confirmScan()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              Confirm & Save
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SUMMARY VIEW ── -->
+    <div class="view-panel" id="view-summary" style="display:none;">
+      <div class="summary-grid" id="summary-grid">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+
+  </div><!-- end main-area -->
+</div><!-- end app-shell -->
+
+<!-- Edit Modal -->
+<div class="modal-backdrop" id="modal-backdrop" style="display:none;" onclick="closeModal()">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Edit Entry</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer">
+      <button class="action-btn" onclick="closeModal()">Cancel</button>
+      <button class="action-btn primary-btn" onclick="saveEditModal()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirm -->
+<div class="modal-backdrop" id="delete-backdrop" style="display:none;" onclick="closeDelete()">
+  <div class="modal-box small" onclick="event.stopPropagation()">
+    <h3 style="margin-bottom:12px;font-size:15px;">Delete this entry?</h3>
+    <p style="color:var(--text-secondary);font-size:13px;margin-bottom:20px;">This action cannot be undone.</p>
+    <div class="modal-footer">
+      <button class="action-btn" onclick="closeDelete()">Cancel</button>
+      <button class="action-btn danger-btn" onclick="confirmDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-container" id="toast-container"></div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
