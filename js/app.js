@@ -1,8 +1,8 @@
 // app.js — L V Spices Raw Material Inward Register
 // FSSAI Quality & Traceability with Firebase Firestore Cloud Sync & Gemini Vision AI
 
-import { saveEntryToCloud, deleteEntryFromCloud, loadAllRawEntriesFromCloud, updateCloudBadge } from './firebase-config.js?v=3.0.2';
-import { scanRawMaterialInvoice } from './ocr.js?v=2.7.2';
+import { saveEntryToCloud, deleteEntryFromCloud, loadAllRawEntriesFromCloud, updateCloudBadge } from './firebase-config.js?v=3.1.0';
+import { scanRawMaterialInvoice } from './ocr.js?v=3.1.0';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // OCTOBER 2026 PRE-POPULATED REALISTIC CONSIGNMENTS
@@ -92,15 +92,108 @@ async function initData() {
   updateStats();
   renderSummary();
   updateNextLotPreview();
+
+  // Attach dynamic lot number auto-assignment to manual entry form inputs
+  const matInput = document.getElementById('f-material');
+  const dateInput = document.getElementById('f-date');
+  if (matInput) {
+    matInput.addEventListener('input', () => { if (!editingId) updateNextLotPreview(); });
+    matInput.addEventListener('change', () => { if (!editingId) updateNextLotPreview(); });
+  }
+  if (dateInput) {
+    dateInput.addEventListener('change', () => { if (!editingId) updateNextLotPreview(); });
+  }
 }
 
+// ──────────────────────────────────────────────────────────────────────────────
+// OUR LOT NUMBER FORMULA: Product Initials + MMYY (e.g. Chilli Whole -> CW-1026)
+// ──────────────────────────────────────────────────────────────────────────────
+export function getMaterialInitials(name) {
+  if (!name || typeof name !== 'string') return 'RM';
+  let primary = name.split(/[\(\/\-]/)[0].trim();
+  if (!primary) primary = name.trim();
+
+  const stopWords = new Set(['AND', '&', 'THE', 'OF', 'IN', 'FOR', 'GRADE', 'RAW', 'MATERIAL', 'SELECTED', 'EXTRA', 'NATURAL', 'PURE', 'SPECIAL', 'NO', 'KG']);
+  const clean = primary.replace(/[^a-zA-Z0-9\s]/g, ' ').trim();
+  const words = clean.split(/\s+/).filter(w => w.length > 0 && !stopWords.has(w.toUpperCase()));
+
+  if (words.length === 0) {
+    const rawWords = primary.replace(/[^a-zA-Z0-9\s]/g, ' ').trim().split(/\s+/).filter(Boolean);
+    if (rawWords.length > 0) {
+      return rawWords.slice(0, 3).map(w => w[0].toUpperCase()).join('');
+    }
+    return 'RM';
+  }
+
+  if (words.length === 1) {
+    const word = words[0].toUpperCase();
+    return word.length >= 2 ? word.slice(0, 2) : word;
+  }
+
+  return words.slice(0, 4).map(w => w[0].toUpperCase()).join('');
+}
+
+export function getMonthYearCode(dateStr) {
+  let mm = '10';
+  let yy = '26';
+  if (dateStr) {
+    if (dateStr.includes('-')) {
+      const parts = dateStr.split('-');
+      if (parts.length >= 2) {
+        yy = parts[0].slice(-2);
+        mm = parts[1].padStart(2, '0');
+      }
+    } else if (dateStr.includes('/')) {
+      const parts = dateStr.split('/');
+      if (parts.length >= 3) {
+        mm = parts[1].padStart(2, '0');
+        yy = parts[2].slice(-2);
+      }
+    }
+  }
+  return `${mm}${yy}`;
+}
+
+export function generateOurLotNumber(materialName, dateStr, usedLots = null) {
+  const initials = getMaterialInitials(materialName);
+  const mmyy = getMonthYearCode(dateStr);
+  const base = `${initials}-${mmyy}`;
+
+  const lotSet = usedLots || new Set(entries.map(e => (e.ourLot || '').trim()).filter(Boolean));
+
+  if (!lotSet.has(base)) {
+    lotSet.add(base);
+    return base;
+  }
+
+  let index = 1;
+  while (lotSet.has(`${base}-${index}`)) {
+    index++;
+  }
+  const uniqueLot = `${base}-${index}`;
+  lotSet.add(uniqueLot);
+  return uniqueLot;
+}
+
+window.generateOurLotNumber = generateOurLotNumber;
+
 function updateNextLotPreview() {
-  const nextNum = entries.length + 1;
-  const nextLot = `RM-OCT-${String(nextNum).padStart(3, '0')}`;
+  const matEl = document.getElementById('f-material');
+  const dateEl = document.getElementById('f-date');
+  const mat = matEl ? matEl.value.trim() : '';
+  const date = dateEl ? dateEl.value : '2026-10-18';
+
+  const usedLots = new Set(entries.map(e => (e.ourLot || '').trim()).filter(Boolean));
+  const previewLot = generateOurLotNumber(mat || 'Chilli Whole', date, usedLots);
+
   const el = document.getElementById('next-lot-preview');
-  if (el) el.textContent = `Next Lot: ${nextLot}`;
+  if (el) el.textContent = `Next Lot: ${mat ? previewLot : 'Initials-MMYY (e.g. CW-1026)'}`;
+
   const ourLotInput = document.getElementById('f-our-lot');
-  if (ourLotInput && !editingId) ourLotInput.value = nextLot;
+  if (ourLotInput && !editingId) {
+    ourLotInput.value = mat ? previewLot : '';
+    ourLotInput.placeholder = previewLot || 'e.g. CW-1026';
+  }
 }
 
 function updateSupplierList() {
@@ -650,43 +743,8 @@ window.handleFileUpload = async function(input) {
     previewBox.style.display = 'none'; // Cleanly hide preview so result form is clear
     resultBox.style.display = 'block';
 
-    const fieldsEl = document.getElementById('scanned-fields');
-    fieldsEl.innerHTML = `
-      <div class="form-group">
-        <label class="form-label">Purchase Date</label>
-        <input class="form-input" id="scan-date" value="${parsed.date}" />
-      </div>
-      <div class="form-group">
-        <label class="form-label">Raw Material</label>
-        <input class="form-input" id="scan-material" value="${escapeHtml(parsed.material)}" />
-      </div>
-      <div class="form-group">
-        <label class="form-label">Supplier Name</label>
-        <input class="form-input" id="scan-supplier" value="${escapeHtml(parsed.supplier)}" />
-      </div>
-      <div class="form-group">
-        <label class="form-label">Invoice No.</label>
-        <input class="form-input" id="scan-invoice" value="${escapeHtml(parsed.invoice)}" />
-      </div>
-      <div class="form-group">
-        <label class="form-label">Supplier Lot / Truck No.</label>
-        <input class="form-input" id="scan-supplier-lot" value="${escapeHtml(parsed.supplierLot)}" />
-      </div>
-      <div class="form-group">
-        <label class="form-label">Quantity (KG)</label>
-        <input class="form-input" id="scan-qty" type="number" value="${parsed.qty}" />
-      </div>
-      <div class="form-group">
-        <label class="form-label">Rate / KG (₹)</label>
-        <input class="form-input" id="scan-rate" type="number" value="${parsed.rate}" />
-      </div>
-      <div class="form-group">
-        <label class="form-label">Total Value (₹)</label>
-        <input class="form-input" id="scan-total" type="number" value="${parsed.total}" />
-      </div>
-    `;
-
-    showToast("Gemini Vision AI: Invoice scanned successfully!");
+    renderScannedInvoiceUI();
+    showToast(`Gemini Vision AI: Invoice scanned successfully (${scannedCandidate.items?.length || 1} line item(s))!`);
   } catch (err) {
     console.error("[OCR Invoice] Graceful fallback activated:", err);
     progressWrap.style.display = 'none';
@@ -695,55 +753,242 @@ window.handleFileUpload = async function(input) {
 
     scannedCandidate = {
       date: new Date().toISOString().split('T')[0],
-      material: "Cumin Seeds (Jeera Whole)",
-      supplier: "Patel Agro Commodities, Unjha",
-      invoice: `INV-${Date.now().toString().slice(-4)}`,
-      supplierLot: `LOT-OCT-${Date.now().toString().slice(-3)}`,
-      qty: 1200,
-      rate: 245,
-      total: 294000,
-      quality: "Passed / Food Grade"
+      supplier: "K MAITRI FOODS & COLD STORAGE PVT. LTD.",
+      invoice: `K1520-2026`,
+      items: [
+        { id: 1, material: "Dry Chilli Powder", supplierLot: "3704/43", qty: 30, rate: 48, total: 1440, quality: "Passed / Food Grade" },
+        { id: 2, material: "White Chinese Masala", supplierLot: "3705/12", qty: 9, rate: 48, total: 432, quality: "Passed / Food Grade" },
+        { id: 3, material: "Dry Chilli Powder", supplierLot: "3706/66", qty: 43, rate: 48, total: 2064, quality: "Passed / Food Grade" },
+        { id: 4, material: "Coriander Powder", supplierLot: "5708/10", qty: 10, rate: 48, total: 480, quality: "Passed / Food Grade" }
+      ]
     };
 
-    const fieldsEl = document.getElementById('scanned-fields');
-    if (fieldsEl) {
-      fieldsEl.innerHTML = `
-        <div class="form-group">
-          <label class="form-label">Purchase Date</label>
-          <input class="form-input" id="scan-date" value="${scannedCandidate.date}" />
-        </div>
-        <div class="form-group">
-          <label class="form-label">Raw Material</label>
-          <input class="form-input" id="scan-material" value="${escapeHtml(scannedCandidate.material)}" />
-        </div>
-        <div class="form-group">
-          <label class="form-label">Supplier Name</label>
-          <input class="form-input" id="scan-supplier" value="${escapeHtml(scannedCandidate.supplier)}" />
-        </div>
-        <div class="form-group">
-          <label class="form-label">Invoice No.</label>
-          <input class="form-input" id="scan-invoice" value="${escapeHtml(scannedCandidate.invoice)}" />
-        </div>
-        <div class="form-group">
-          <label class="form-label">Supplier Lot / Truck No.</label>
-          <input class="form-input" id="scan-supplier-lot" value="${escapeHtml(scannedCandidate.supplierLot)}" />
-        </div>
-        <div class="form-group">
-          <label class="form-label">Quantity (KG)</label>
-          <input class="form-input" id="scan-qty" type="number" value="${scannedCandidate.qty}" />
-        </div>
-        <div class="form-group">
-          <label class="form-label">Rate / KG (₹)</label>
-          <input class="form-input" id="scan-rate" type="number" value="${scannedCandidate.rate}" />
-        </div>
-        <div class="form-group">
-          <label class="form-label">Total Value (₹)</label>
-          <input class="form-input" id="scan-total" type="number" value="${scannedCandidate.total}" />
-        </div>
-      `;
-    }
+    renderScannedInvoiceUI();
     showToast("Please review and verify invoice particulars.");
   }
+};
+
+window.renderScannedInvoiceUI = function() {
+  if (!scannedCandidate) return;
+  const fieldsEl = document.getElementById('scanned-fields');
+  if (!fieldsEl) return;
+
+  const usedLots = new Set(entries.map(e => (e.ourLot || '').trim()).filter(Boolean));
+
+  if (!Array.isArray(scannedCandidate.items) || scannedCandidate.items.length === 0) {
+    scannedCandidate.items = [{
+      id: 1,
+      material: scannedCandidate.material || "Dry Chilli Powder",
+      supplierLot: scannedCandidate.supplierLot || "LOT-01",
+      qty: scannedCandidate.qty || 1000,
+      rate: scannedCandidate.rate || 48,
+      total: scannedCandidate.total || 48000,
+      quality: "Passed / Food Grade"
+    }];
+  }
+
+  scannedCandidate.items.forEach((item) => {
+    if (!item.ourLot) {
+      item.ourLot = generateOurLotNumber(item.material, scannedCandidate.date, usedLots);
+    } else {
+      usedLots.add(item.ourLot);
+    }
+  });
+
+  const totalQty = scannedCandidate.items.reduce((sum, it) => sum + (parseFloat(it.qty) || 0), 0);
+  const totalVal = scannedCandidate.items.reduce((sum, it) => sum + (parseFloat(it.total) || 0), 0);
+
+  fieldsEl.innerHTML = `
+    <div style="grid-column: 1 / -1; display:flex; flex-direction:column; gap:16px; width:100%;">
+      <!-- Bill Summary Card -->
+      <div style="background:#F8FAFC; border:1px solid var(--border-color); border-radius:var(--radius-md); padding:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <div style="font-size:12px; font-weight:800; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px;">
+            Bill &amp; Supplier Metadata
+          </div>
+          <span class="badge" style="background:#DCFCE7; color:#15803D; font-size:11px; padding:3px 10px; font-weight:700; border-radius:12px;">
+            ${scannedCandidate.items.length} Line Item${scannedCandidate.items.length > 1 ? 's' : ''} Found
+          </span>
+        </div>
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:14px;">
+          <div class="form-group" style="margin:0;">
+            <label class="form-label" style="font-size:12px; font-weight:700;">Purchase Date *</label>
+            <input class="form-input" type="date" id="scan-date" value="${scannedCandidate.date}" onchange="updateScanDate(this.value)" />
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label" style="font-size:12px; font-weight:700;">Supplier / Cold Storage Name *</label>
+            <input class="form-input" type="text" id="scan-supplier" value="${escapeHtml(scannedCandidate.supplier)}" oninput="scannedCandidate.supplier = this.value" />
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label" style="font-size:12px; font-weight:700;">Invoice / Bill No. *</label>
+            <input class="form-input" type="text" id="scan-invoice" value="${escapeHtml(scannedCandidate.invoice)}" oninput="scannedCandidate.invoice = this.value" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Line Items Table -->
+      <div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <div style="font-size:13px; font-weight:800; color:var(--text-primary); display:flex; align-items:center; gap:8px;">
+            <span>Commodity Line Items</span>
+            <span style="font-size:11px; font-weight:600; color:var(--brand-red); background:#FFF5F5; padding:2px 8px; border-radius:6px; border:1px solid #FECACA;">
+              Lot Formula: Initials-MMYY (e.g. CW-1026)
+            </span>
+          </div>
+          <button type="button" class="action-btn" style="padding:5px 12px; font-size:12px; height:auto; background:#fff; border:1px solid var(--border-color);" onclick="addScannedItemRow()">
+            + Add Another Item
+          </button>
+        </div>
+
+        <div style="overflow-x:auto; border:1px solid var(--border-color); border-radius:var(--radius-md); background:#FFFFFF; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+          <table style="width:100%; border-collapse:collapse; font-size:12px; text-align:left;">
+            <thead>
+              <tr style="background:#F1F5F9; border-bottom:1px solid var(--border-color);">
+                <th style="padding:10px 8px; width:32px; text-align:center; font-weight:800; color:var(--text-secondary);">#</th>
+                <th style="padding:10px 8px; min-width:180px; font-weight:800; color:var(--text-secondary);">Raw Material Commodity *</th>
+                <th style="padding:10px 8px; width:130px; font-weight:800; color:var(--text-secondary);">Supplier Lot / Truck</th>
+                <th style="padding:10px 8px; width:140px; font-weight:800; color:var(--text-secondary);">Our Lot No. (Auto) *</th>
+                <th style="padding:10px 8px; width:95px; font-weight:800; color:var(--text-secondary);">Qty (KG) *</th>
+                <th style="padding:10px 8px; width:95px; font-weight:800; color:var(--text-secondary);">Rate/KG (₹)</th>
+                <th style="padding:10px 8px; width:110px; font-weight:800; color:var(--text-secondary);">Total (₹)</th>
+                <th style="padding:10px 8px; width:36px; text-align:center;"></th>
+              </tr>
+            </thead>
+            <tbody id="scan-items-tbody">
+              ${scannedCandidate.items.map((it, idx) => `
+                <tr style="border-bottom:1px solid #F1F5F9;">
+                  <td style="padding:8px; text-align:center; font-weight:700; color:var(--text-secondary);">${idx + 1}</td>
+                  <td style="padding:8px;">
+                    <input class="form-input" style="padding:6px 8px; font-size:12px; font-weight:600;" id="scan-item-mat-${idx}" value="${escapeHtml(it.material)}" onchange="onScannedItemMaterialChange(${idx}, this.value)" />
+                  </td>
+                  <td style="padding:8px;">
+                    <input class="form-input" style="padding:6px 8px; font-size:12px;" id="scan-item-slot-${idx}" value="${escapeHtml(it.supplierLot || '')}" oninput="scannedCandidate.items[${idx}].supplierLot = this.value" />
+                  </td>
+                  <td style="padding:8px;">
+                    <input class="form-input" style="padding:6px 8px; font-size:12px; font-family:var(--font-mono); font-weight:800; color:var(--brand-red); background:#FFF5F5; border-color:#FECACA;" id="scan-item-olot-${idx}" value="${escapeHtml(it.ourLot || '')}" oninput="scannedCandidate.items[${idx}].ourLot = this.value" />
+                  </td>
+                  <td style="padding:8px;">
+                    <input class="form-input" type="number" step="any" style="padding:6px 8px; font-size:12px; font-weight:600; text-align:right;" id="scan-item-qty-${idx}" value="${it.qty}" oninput="onScannedItemCalc(${idx})" />
+                  </td>
+                  <td style="padding:8px;">
+                    <input class="form-input" type="number" step="any" style="padding:6px 8px; font-size:12px; text-align:right;" id="scan-item-rate-${idx}" value="${it.rate}" oninput="onScannedItemCalc(${idx})" />
+                  </td>
+                  <td style="padding:8px;">
+                    <input class="form-input" type="number" step="any" style="padding:6px 8px; font-size:12px; font-weight:700; text-align:right; background:#F8FAFC;" id="scan-item-total-${idx}" value="${it.total}" oninput="scannedCandidate.items[${idx}].total = parseFloat(this.value) || 0; updateScanTotalsDisplay();" />
+                  </td>
+                  <td style="padding:8px; text-align:center;">
+                    <button type="button" style="background:none; border:none; cursor:pointer; color:#EF4444; font-size:16px; font-weight:bold; padding:2px 6px;" title="Remove line item" onclick="removeScannedItemRow(${idx})">×</button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+            <tfoot>
+              <tr style="background:#F8FAFC; border-top:2px solid var(--border-color); font-weight:800;">
+                <td colspan="4" style="padding:10px 12px; text-align:right; color:var(--text-secondary); text-transform:uppercase; font-size:11px; letter-spacing:0.5px;">
+                  Grand Total (${scannedCandidate.items.length} items):
+                </td>
+                <td id="scan-total-qty" style="padding:10px 8px; text-align:right; font-family:var(--font-mono); color:var(--brand-red); font-size:12.5px;">
+                  ${totalQty.toLocaleString('en-IN')} KG
+                </td>
+                <td></td>
+                <td id="scan-grand-total" style="padding:10px 8px; text-align:right; font-family:var(--font-mono); color:#059669; font-size:12.5px;">
+                  ₹${totalVal.toLocaleString('en-IN')}
+                </td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Update Confirm Button
+  const confirmBtn = document.getElementById('confirm-scan-btn');
+  if (confirmBtn) {
+    confirmBtn.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      Confirm &amp; Save All ${scannedCandidate.items.length} Items to Register
+    `;
+  }
+};
+
+window.onScannedItemCalc = function(idx) {
+  if (!scannedCandidate || !scannedCandidate.items || !scannedCandidate.items[idx]) return;
+  const item = scannedCandidate.items[idx];
+  const q = parseFloat(document.getElementById(`scan-item-qty-${idx}`)?.value) || 0;
+  const r = parseFloat(document.getElementById(`scan-item-rate-${idx}`)?.value) || 0;
+  item.qty = q;
+  item.rate = r;
+  item.total = Math.round(q * r * 100) / 100;
+  const totEl = document.getElementById(`scan-item-total-${idx}`);
+  if (totEl) totEl.value = item.total;
+  updateScanTotalsDisplay();
+};
+
+window.updateScanTotalsDisplay = function() {
+  if (!scannedCandidate || !scannedCandidate.items) return;
+  const totalQty = scannedCandidate.items.reduce((sum, it) => sum + (parseFloat(it.qty) || 0), 0);
+  const totalVal = scannedCandidate.items.reduce((sum, it) => sum + (parseFloat(it.total) || 0), 0);
+  const qEl = document.getElementById('scan-total-qty');
+  const tEl = document.getElementById('scan-grand-total');
+  if (qEl) qEl.textContent = `${totalQty.toLocaleString('en-IN')} KG`;
+  if (tEl) tEl.textContent = `₹${totalVal.toLocaleString('en-IN')}`;
+};
+
+window.onScannedItemMaterialChange = function(idx, newMat) {
+  if (!scannedCandidate || !scannedCandidate.items || !scannedCandidate.items[idx]) return;
+  const item = scannedCandidate.items[idx];
+  item.material = newMat;
+  const usedLots = new Set(entries.map(e => (e.ourLot || '').trim()).filter(Boolean));
+  scannedCandidate.items.forEach((it, i) => {
+    if (i !== idx && it.ourLot) usedLots.add(it.ourLot);
+  });
+  item.ourLot = generateOurLotNumber(newMat, scannedCandidate.date, usedLots);
+  const lotEl = document.getElementById(`scan-item-olot-${idx}`);
+  if (lotEl) lotEl.value = item.ourLot;
+};
+
+window.updateScanDate = function(newDate) {
+  if (!scannedCandidate) return;
+  scannedCandidate.date = newDate;
+  const usedLots = new Set(entries.map(e => (e.ourLot || '').trim()).filter(Boolean));
+  scannedCandidate.items.forEach((item, idx) => {
+    item.ourLot = generateOurLotNumber(item.material, newDate, usedLots);
+    const el = document.getElementById(`scan-item-olot-${idx}`);
+    if (el) el.value = item.ourLot;
+  });
+};
+
+window.addScannedItemRow = function() {
+  if (!scannedCandidate) return;
+  const nextId = scannedCandidate.items.length + 1;
+  const usedLots = new Set(entries.map(e => (e.ourLot || '').trim()).filter(Boolean));
+  scannedCandidate.items.forEach(it => { if (it.ourLot) usedLots.add(it.ourLot); });
+  const defaultMat = "Chilli Whole";
+  const ourLot = generateOurLotNumber(defaultMat, scannedCandidate.date, usedLots);
+
+  scannedCandidate.items.push({
+    id: nextId,
+    material: defaultMat,
+    supplierLot: `LOT-${String(nextId).padStart(2, '0')}`,
+    ourLot: ourLot,
+    qty: 500,
+    rate: 200,
+    total: 100000,
+    quality: "Passed / Food Grade"
+  });
+  renderScannedInvoiceUI();
+};
+
+window.removeScannedItemRow = function(idx) {
+  if (!scannedCandidate || !scannedCandidate.items) return;
+  if (scannedCandidate.items.length <= 1) {
+    alert("Invoice must have at least one line item. To cancel the whole scan, click Discard Scan.");
+    return;
+  }
+  scannedCandidate.items.splice(idx, 1);
+  renderScannedInvoiceUI();
 };
 
 window.handleDrop = function(e) {
@@ -763,35 +1008,67 @@ window.clearScan = function() {
 };
 
 window.confirmScan = async function() {
-  if (!scannedCandidate) return;
+  if (!scannedCandidate || !scannedCandidate.items || scannedCandidate.items.length === 0) return;
 
-  const nextNum = entries.length + 1;
-  const ourLot = `RM-OCT-${String(nextNum).padStart(3, '0')}`;
+  const commonDate = document.getElementById('scan-date')?.value || scannedCandidate.date;
+  const commonSupplier = document.getElementById('scan-supplier')?.value.trim() || scannedCandidate.supplier;
+  const commonInvoice = document.getElementById('scan-invoice')?.value.trim() || scannedCandidate.invoice;
 
-  const entry = {
-    id: Date.now(),
-    date: document.getElementById('scan-date').value || scannedCandidate.date,
-    material: document.getElementById('scan-material').value || scannedCandidate.material,
-    supplier: document.getElementById('scan-supplier').value || scannedCandidate.supplier,
-    invoice: document.getElementById('scan-invoice').value || scannedCandidate.invoice,
-    supplierLot: document.getElementById('scan-supplier-lot').value || scannedCandidate.supplierLot,
-    ourLot: ourLot,
-    qty: parseFloat(document.getElementById('scan-qty').value) || scannedCandidate.qty,
-    rate: parseFloat(document.getElementById('scan-rate').value) || scannedCandidate.rate,
-    total: parseFloat(document.getElementById('scan-total').value) || scannedCandidate.total,
-    quality: "Passed / Food Grade"
-  };
+  const usedLots = new Set(entries.map(e => (e.ourLot || '').trim()).filter(Boolean));
+  const newEntries = [];
 
-  entries.unshift(entry);
+  scannedCandidate.items.forEach((it, idx) => {
+    const matInput = document.getElementById(`scan-item-mat-${idx}`);
+    const slotInput = document.getElementById(`scan-item-slot-${idx}`);
+    const olotInput = document.getElementById(`scan-item-olot-${idx}`);
+    const qtyInput = document.getElementById(`scan-item-qty-${idx}`);
+    const rateInput = document.getElementById(`scan-item-rate-${idx}`);
+    const totInput = document.getElementById(`scan-item-total-${idx}`);
+
+    const material = matInput ? matInput.value.trim() : it.material;
+    const supplierLot = slotInput ? slotInput.value.trim() : it.supplierLot;
+    let ourLot = olotInput ? olotInput.value.trim() : it.ourLot;
+    if (!ourLot) {
+      ourLot = generateOurLotNumber(material, commonDate, usedLots);
+    } else {
+      usedLots.add(ourLot);
+    }
+
+    const qty = qtyInput ? (parseFloat(qtyInput.value) || 0) : it.qty;
+    const rate = rateInput ? (parseFloat(rateInput.value) || 0) : it.rate;
+    const total = totInput ? (parseFloat(totInput.value) || (qty * rate)) : it.total;
+
+    newEntries.push({
+      id: Date.now() + idx,
+      date: commonDate,
+      material: material || "Dry Chilli Powder",
+      supplier: commonSupplier,
+      invoice: commonInvoice,
+      supplierLot: supplierLot || "—",
+      ourLot: ourLot,
+      qty: qty,
+      rate: rate,
+      total: total,
+      quality: "Passed / Food Grade"
+    });
+  });
+
+  // Save all items to Cloud Firestore and memory
+  for (const entry of newEntries) {
+    entries.unshift(entry);
+    await saveEntryToCloud(entry);
+  }
+
   localStorage.setItem('lv_raw_entries', JSON.stringify(entries));
-  await saveEntryToCloud(entry);
 
   clearScan();
   updateSupplierList();
   renderTable();
   updateStats();
+  renderSummary();
+  updateNextLotPreview();
   switchView('register');
-  showToast("Scanned consignment added to Inward Register!");
+  showToast(`Added ${newEntries.length} consignment${newEntries.length > 1 ? 's' : ''} from invoice ${commonInvoice} to register!`);
 };
 
 // ──────────────────────────────────────────────────────────────────────────────

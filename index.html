@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <!-- SheetJS for Excel Export -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <link rel="stylesheet" href="css/app.css?v=3.0.6" />
+  <link rel="stylesheet" href="css/app.css?v=3.1.0" />
   <link rel="icon" type="image/jpeg" href="assets/favicon.jpg" />
   <link rel="apple-touch-icon" href="assets/favicon.jpg" />
 </head>
@@ -439,12 +439,12 @@
               <div style="font-size:11.5px; font-weight:400; color:#047857; margin-top:2px;">Review the parsed values below. Edit any field if needed, then confirm to allot the official lot number.</div>
             </div>
           </div>
-          <div class="form-grid scanned-fields" id="scanned-fields">
-            <!-- Dynamically populated fields -->
+          <div class="scanned-fields" id="scanned-fields" style="width:100%;">
+            <!-- Dynamically populated multi-item table -->
           </div>
           <div class="form-actions" style="margin-top:20px;">
             <button class="action-btn" onclick="clearScan()">Discard Scan</button>
-            <button class="action-btn primary-btn" onclick="confirmScan()">
+            <button class="action-btn primary-btn" id="confirm-scan-btn" onclick="confirmScan()">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
               Confirm &amp; Save to Register
             </button>
@@ -638,8 +638,8 @@
 <!-- Toast -->
 <div class="toast-container" id="toast-container"></div>
 
-<script type="module" src="js/firebase-config.js?v=3.0.6"></script>
-<script type="module" src="js/ocr.js?v=3.0.6"></script>
-<script type="module" src="js/app.js?v=3.0.6"></script>
+<script type="module" src="js/firebase-config.js?v=3.1.0"></script>
+<script type="module" src="js/ocr.js?v=3.1.0"></script>
+<script type="module" src="js/app.js?v=3.1.0"></script>
 </body>
 </html>

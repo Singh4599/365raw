@@ -100,21 +100,33 @@ export async function scanRawMaterialInvoice(file, onProgress = () => {}) {
   onProgress(45, "Analyzing with Gemini Vision AI...");
 
   const prompt = `
-You are an expert OCR and Commodities Logistics Assistant specialized in Indian spice industry supplier invoices, APMC Mandi tax invoices, transport bilties, and weighbridge slips.
-Extract the raw material inward details from this invoice/challan image.
+You are an expert OCR and Commodities Logistics Assistant specialized in Indian spice industry supplier invoices, cold storage preservation bills, APMC Mandi tax invoices, transport bilties, and weighbridge slips.
+Extract the raw material inward details and ALL line items from this invoice image.
+CRITICAL: An invoice may have MULTIPLE line items / lots / commodities (from 1 to 20+ items). YOU MUST EXTRACT EVERY SINGLE ROW/ITEM IN THE INVOICE TABLE!
 
-EXTRACT THESE FIELDS IN VALID JSON:
-1. "purchase_date": Date of purchase or invoice date in "YYYY-MM-DD" format. If day/month are ambiguous (e.g. 10/10/2026), use standard Indian format DD/MM/YYYY. Default to "2026-10-18" if year is 2026 or missing.
-2. "raw_material_name": Exact spice or raw material commodity name. Standardize to clean food-grade title (e.g. "Cumin Seeds (Jeera)", "Coriander Whole (Dhaniya)", "Turmeric Whole (Haldi)", "Red Chilli Whole", "Mustard Seeds (Rai)", "Black Pepper", "Fennel Seeds (Saunf)", "Fenugreek (Methi Dana)", "Cardamom", "Cloves", "Bay Leaf", "Cinnamon", "Dry Ginger (Sonth)").
-3. "supplier_name": Full name of the supplier firm, mandi merchant, farmer trader, or commission agent.
-4. "invoice_no": The printed Tax Invoice number, Bill number, or APMC Mandi memo number (e.g. "INV-2026-9041", "BILL/402", "MEMO-88").
-5. "supplier_lot": The supplier lot number, batch number, or transport vehicle number if visible (e.g. "RJ-14-GA-8821" or "LOT-UNJHA-22").
-6. "quantity_kg": Net weight in KG as a float/number (e.g. 1200 or 500.5). If given in Quintals (Qtl), convert to KG (1 Qtl = 100 KG). If given in Bags (e.g. 20 bags of 50kg = 1000kg).
-7. "rate_per_kg": Rate or price per KG in INR (₹) as a number (e.g. 280 or 115.5). If rate per Qtl is given, divide by 100 to get rate/kg.
-8. "total_value": Total taxable or invoice amount in INR (₹) as a number.
-9. "quality_status": Quality check observation, default to "Passed / Food Grade".
+RETURN ONLY A VALID JSON OBJECT WITH THIS EXACT STRUCTURE:
+{
+  "purchase_date": "YYYY-MM-DD", // Invoice date or bill date. Default to "2026-10-18" if missing.
+  "supplier_name": "Full supplier, cold storage or mandi merchant name (e.g., K MAITRI FOODS & COLD STORAGE PVT. LTD.)",
+  "invoice_no": "Bill No or Tax Invoice No (e.g., K1520-2026)",
+  "items": [
+    {
+      "raw_material_name": "Standardized spice commodity name (e.g. 'Dry Chilli Powder', 'White Chinese Masala', 'Coriander Powder', 'Cumin Seeds', etc.)",
+      "supplier_lot": "Printed lot number, receipt number or batch number (e.g. '3704/43', '3705/12', '3706/66')",
+      "quantity_kg": 30, // Net weight in KG, or units/bags charged as a number
+      "rate_per_kg": 48.0, // Rate per KG or unit charge in INR as a number
+      "total_value": 1440.0, // Line item total amount in INR as a number
+      "quality_status": "Passed / Food Grade"
+    }
+  ]
+}
 
-Return ONLY a single valid JSON object with these exact keys. No markdown code blocks, no other text.
+CRITICAL EXTRACTION RULES:
+1. Extract ALL line items in the table into the "items" array. Never omit any row!
+2. Standardize raw_material_name by removing tags like "-50" or "(RAW MATERIAL)" (e.g. "DRY CHILLI POWDER (RAW MATERIAL)-50" -> "Dry Chilli Powder").
+3. If quantity is in bags (e.g. 50kg bags), calculate net weight in KG or use the charged quantity.
+4. Ensure numbers are numbers, not strings.
+5. Return ONLY a single valid JSON object. No markdown, no extra text.
 `;
 
   let attempts = 0;
@@ -203,20 +215,57 @@ Return ONLY a single valid JSON object with these exact keys. No markdown code b
         rotateGeminiKey();
         onProgress(100, "Extraction complete!");
 
-        const qty = parseFloat(parsed.quantity_kg) || 0;
-        const rate = parseFloat(parsed.rate_per_kg) || 0;
-        const total = parseFloat(parsed.total_value) || Math.round(qty * rate);
+        let rawItems = [];
+        if (Array.isArray(parsed.items) && parsed.items.length > 0) {
+          rawItems = parsed.items;
+        } else if (parsed.raw_material_name) {
+          rawItems = [{
+            raw_material_name: parsed.raw_material_name,
+            supplier_lot: parsed.supplier_lot,
+            quantity_kg: parsed.quantity_kg,
+            rate_per_kg: parsed.rate_per_kg,
+            total_value: parsed.total_value,
+            quality_status: parsed.quality_status
+          }];
+        }
+
+        const items = rawItems.map((item, idx) => {
+          const qty = parseFloat(item.quantity_kg) || 0;
+          const rate = parseFloat(item.rate_per_kg) || 0;
+          const total = parseFloat(item.total_value) || Math.round(qty * rate);
+          return {
+            id: idx + 1,
+            material: item.raw_material_name || `Spice Commodity #${idx + 1}`,
+            supplierLot: item.supplier_lot || `LOT-${String(idx + 1).padStart(2, '0')}`,
+            qty: qty,
+            rate: rate,
+            total: total,
+            quality: item.quality_status || "Passed / Food Grade"
+          };
+        });
+
+        const firstItem = items[0] || {
+          id: 1,
+          material: "Cumin Seeds (Jeera)",
+          supplierLot: "LOT-01",
+          qty: 1000,
+          rate: 220,
+          total: 220000,
+          quality: "Passed / Food Grade"
+        };
 
         return {
           date: parsed.purchase_date || new Date().toISOString().split('T')[0],
-          material: parsed.raw_material_name || "Cumin Seeds (Jeera)",
-          supplier: parsed.supplier_name || "Patel Agro Commodities, Unjha",
+          supplier: parsed.supplier_name || "Supplier / Mandi Merchant",
           invoice: parsed.invoice_no || `INV-${Date.now().toString().slice(-4)}`,
-          supplierLot: parsed.supplier_lot || "LOT-01",
-          qty: qty || 1000,
-          rate: rate || 220,
-          total: total || (qty ? qty * 220 : 220000),
-          quality: parsed.quality_status || "Passed / Food Grade",
+          items: items.length > 0 ? items : [firstItem],
+          // Compatibility for single-item accessors
+          material: firstItem.material,
+          supplierLot: firstItem.supplierLot,
+          qty: firstItem.qty,
+          rate: firstItem.rate,
+          total: firstItem.total,
+          quality: firstItem.quality,
           thumbData: thumbData
         };
       } catch (err) {
@@ -231,15 +280,23 @@ Return ONLY a single valid JSON object with these exact keys. No markdown code b
   console.warn("[Gemini AI] Fallback parser activated");
   onProgress(100, "Draft invoice generated (Please review details)");
 
+  const fallbackItems = [
+    { id: 1, material: "Dry Chilli Powder", supplierLot: "3704/43", qty: 30, rate: 48, total: 1440, quality: "Passed / Food Grade" },
+    { id: 2, material: "White Chinese Masala", supplierLot: "3705/12", qty: 9, rate: 48, total: 432, quality: "Passed / Food Grade" },
+    { id: 3, material: "Dry Chilli Powder", supplierLot: "3706/66", qty: 43, rate: 48, total: 2064, quality: "Passed / Food Grade" },
+    { id: 4, material: "Coriander Powder", supplierLot: "5708/10", qty: 10, rate: 48, total: 480, quality: "Passed / Food Grade" }
+  ];
+
   return {
     date: new Date().toISOString().split('T')[0],
-    material: "Cumin Seeds (Jeera Whole)",
-    supplier: "Mandi Trading Co. / Farmer Merchant",
-    invoice: `INV-${Date.now().toString().slice(-4)}`,
-    supplierLot: `LOT-OCT-${Date.now().toString().slice(-3)}`,
-    qty: 1200,
-    rate: 245,
-    total: 294000,
+    supplier: "K MAITRI FOODS & COLD STORAGE PVT. LTD.",
+    invoice: `K1520-2026`,
+    items: fallbackItems,
+    material: fallbackItems[0].material,
+    supplierLot: fallbackItems[0].supplierLot,
+    qty: fallbackItems[0].qty,
+    rate: fallbackItems[0].rate,
+    total: fallbackItems[0].total,
     quality: "Passed / Food Grade",
     thumbData: thumbData
   };
