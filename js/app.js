@@ -629,13 +629,14 @@ window.handleFileUpload = async function(input) {
   progressWrap.style.display = 'block';
   resultBox.style.display = 'none';
 
-  // Preview thumbnail
+  // Preview thumbnail only for actual image files (NEVER show decorative spice artwork)
   if (file.type && file.type.startsWith('image/')) {
-    previewBox.style.display = 'block';
+    previewBox.style.display = 'flex';
+    previewImg.style.display = 'block';
     previewImg.src = URL.createObjectURL(file);
   } else {
-    previewBox.style.display = 'block';
-    previewImg.src = "assets/images/sidebar-spice-decoration.webp";
+    previewBox.style.display = 'none';
+    previewImg.src = '';
   }
 
   try {
@@ -646,6 +647,7 @@ window.handleFileUpload = async function(input) {
 
     scannedCandidate = parsed;
     progressWrap.style.display = 'none';
+    previewBox.style.display = 'none'; // Cleanly hide preview so result form is clear
     resultBox.style.display = 'block';
 
     const fieldsEl = document.getElementById('scanned-fields');
@@ -688,6 +690,7 @@ window.handleFileUpload = async function(input) {
   } catch (err) {
     console.error("[OCR Invoice] Graceful fallback activated:", err);
     progressWrap.style.display = 'none';
+    previewBox.style.display = 'none';
     resultBox.style.display = 'block';
 
     scannedCandidate = {
