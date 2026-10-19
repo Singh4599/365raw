@@ -1062,6 +1062,17 @@ window.confirmScan = async function() {
   localStorage.setItem('lv_raw_entries', JSON.stringify(entries));
 
   clearScan();
+
+  // Clear restrictive filters so newly added consignments are immediately visible
+  periodFilter = 'all';
+  document.querySelectorAll('.period-pill').forEach(btn => {
+    btn.classList.toggle('active', btn.id === 'pill-all');
+  });
+  const mInput = document.getElementById('month-filter');
+  if (mInput) mInput.value = '';
+  const sInput = document.getElementById('search-input');
+  if (sInput) sInput.value = '';
+
   updateSupplierList();
   renderTable();
   updateStats();

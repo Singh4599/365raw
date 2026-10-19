@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <!-- SheetJS for Excel Export -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <link rel="stylesheet" href="css/app.css?v=3.1.0" />
+  <link rel="stylesheet" href="css/app.css?v=3.1.1" />
   <link rel="icon" type="image/jpeg" href="assets/favicon.jpg" />
   <link rel="apple-touch-icon" href="assets/favicon.jpg" />
 </head>
@@ -203,7 +203,7 @@
           <input class="filter-input search-input" type="text" id="search-input" placeholder="Search spice, supplier, lot, invoice..." oninput="applyFilters()" />
         </div>
         <div class="date-input-wrap">
-          <input class="filter-input date-input" type="month" id="month-filter" value="2026-10" onchange="applyFilters()" />
+          <input class="filter-input date-input" type="month" id="month-filter" value="" onchange="applyFilters()" />
         </div>
         <button class="filter-clear-btn" onclick="clearFilters()">Clear</button>
         <div class="filter-spacer"></div>
@@ -638,8 +638,8 @@
 <!-- Toast -->
 <div class="toast-container" id="toast-container"></div>
 
-<script type="module" src="js/firebase-config.js?v=3.1.0"></script>
-<script type="module" src="js/ocr.js?v=3.1.0"></script>
-<script type="module" src="js/app.js?v=3.1.0"></script>
+<script type="module" src="js/firebase-config.js?v=3.1.1"></script>
+<script type="module" src="js/ocr.js?v=3.1.1"></script>
+<script type="module" src="js/app.js?v=3.1.1"></script>
 </body>
 </html>
