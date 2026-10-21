@@ -281,7 +281,7 @@
         <div class="form-grid">
           <div class="form-group">
             <label class="form-label">Purchase Date *</label>
-            <input class="form-input" type="date" id="f-date" value="2026-10-18" />
+            <input class="form-input" type="date" id="f-date" />
           </div>
           <div class="form-group">
             <label class="form-label">Raw Material Name *</label>
@@ -527,7 +527,7 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
           </div>
           <div class="eoc-content">
-            <div class="eoc-tag-row"><span class="eoc-tag tag-daily">DAILY REPORT</span><span class="eoc-badge">18 Oct 2026</span></div>
+            <div class="eoc-tag-row"><span class="eoc-tag tag-daily">DAILY REPORT</span><span class="eoc-badge" id="export-daily-badge">Today</span></div>
             <strong>Today's Inward Consignment Log (.xlsx)</strong>
             <span>Consignments received today with supplier lots, truck numbers &amp; net weights</span>
           </div>
@@ -588,7 +588,7 @@
         <div class="range-inputs">
           <input type="date" id="export-from-date" class="form-input-sm" value="2026-10-01" />
           <span>to</span>
-          <input type="date" id="export-to-date" class="form-input-sm" value="2026-10-18" />
+          <input type="date" id="export-to-date" class="form-input-sm" />
           <button class="action-btn excel-btn" style="padding:6px 12px; font-size:12px;" onclick="exportReport('custom')">Download Range</button>
         </div>
       </div>

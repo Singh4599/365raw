@@ -43,10 +43,8 @@ let scannedCandidate = null;
 let periodFilter = 'all'; // 'all' | 'daily' | 'weekly' | 'monthly'
 
 function getEffectiveToday() {
-  const realToday = new Date().toISOString().slice(0, 10);
-  const hasReal = entries.some(e => e.date === realToday);
-  if (hasReal) return realToday;
-  return "2026-10-18";
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -96,12 +94,15 @@ async function initData() {
   // Attach dynamic lot number auto-assignment to manual entry form inputs
   const matInput = document.getElementById('f-material');
   const dateInput = document.getElementById('f-date');
+  if (dateInput) {
+    if (!dateInput.value || dateInput.value === '2026-10-18') {
+      dateInput.value = getEffectiveToday();
+    }
+    dateInput.addEventListener('change', () => { if (!editingId) updateNextLotPreview(); });
+  }
   if (matInput) {
     matInput.addEventListener('input', () => { if (!editingId) updateNextLotPreview(); });
     matInput.addEventListener('change', () => { if (!editingId) updateNextLotPreview(); });
-  }
-  if (dateInput) {
-    dateInput.addEventListener('change', () => { if (!editingId) updateNextLotPreview(); });
   }
 }
 
@@ -181,7 +182,7 @@ function updateNextLotPreview() {
   const matEl = document.getElementById('f-material');
   const dateEl = document.getElementById('f-date');
   const mat = matEl ? matEl.value.trim() : '';
-  const date = dateEl ? dateEl.value : '2026-10-18';
+  const date = dateEl && dateEl.value ? dateEl.value : getEffectiveToday();
 
   const usedLots = new Set(entries.map(e => (e.ourLot || '').trim()).filter(Boolean));
   const previewLot = generateOurLotNumber(mat || 'Chilli Whole', date, usedLots);
@@ -450,7 +451,7 @@ window.submitEntry = async function() {
 };
 
 function resetForm() {
-  document.getElementById('f-date').value = "2026-10-18";
+  document.getElementById('f-date').value = getEffectiveToday();
   document.getElementById('f-material').value = "";
   document.getElementById('f-supplier').value = "";
   document.getElementById('f-invoice').value = "";
@@ -1087,6 +1088,11 @@ window.confirmScan = async function() {
 // ──────────────────────────────────────────────────────────────────────────────
 window.openExportModal = function() {
   document.getElementById('export-modal').style.display = 'flex';
+  const today = getEffectiveToday();
+  const exportTo = document.getElementById('export-to-date');
+  if (exportTo) exportTo.value = today;
+  const exportBadge = document.getElementById('export-daily-badge');
+  if (exportBadge) exportBadge.textContent = today;
 };
 
 window.closeExportModal = function() {
@@ -1105,10 +1111,19 @@ window.exportReport = function(type) {
   if (type === 'daily') {
     const today = getEffectiveToday();
     dataToExport = entries.filter(e => e.date === today);
+    if (dataToExport.length === 0) {
+      const latestDate = entries.reduce((max, e) => (e.date > max ? e.date : max), '');
+      dataToExport = entries.filter(e => e.date === latestDate);
+    }
     fileName = `LV_Spices_Raw_Material_Daily_${today}.xlsx`;
   } else if (type === 'weekly') {
     const effToday = getEffectiveToday();
-    dataToExport = entries.filter(e => e.date >= "2026-10-12" && e.date <= effToday);
+    const d = new Date(effToday);
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(d.setDate(diff));
+    const monStr = `${monday.getFullYear()}-${String(monday.getMonth()+1).padStart(2,'0')}-${String(monday.getDate()).padStart(2,'0')}`;
+    dataToExport = entries.filter(e => e.date >= monStr && e.date <= effToday);
     fileName = `LV_Spices_Raw_Material_Weekly_Summary.xlsx`;
   } else if (type === 'october' || type === 'monthly') {
     dataToExport = entries.filter(e => (e.date || '').startsWith('2026-10'));
