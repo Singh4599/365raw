@@ -561,7 +561,31 @@ window.openEditModal = function(id) {
         <span class="itb-badge">Tax Invoice Base</span>
       </div>
     </div>
+
+    <!-- Supplier Compliance Details -->
+    <div style="margin-top:16px; padding:14px; background:#F8FAFC; border:1px solid var(--border-color); border-radius:var(--radius-md);">
+      <div style="font-size:11px; font-weight:800; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px;">📋 Supplier Compliance Details <span style="font-weight:500; font-size:10px; color:#94A3B8;">(blank if not on invoice)</span></div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+        <div class="form-group" style="margin:0;">
+          <label class="form-label" style="font-size:12px;">📍 Supplier Address</label>
+          <input class="form-input" type="text" id="m-edit-supplier-address" value="${escapeHtml(entry.supplierAddress || '')}" placeholder="e.g. Lasalgaon, Nashik, Maharashtra" />
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label class="form-label" style="font-size:12px;">📞 Phone No.</label>
+          <input class="form-input" type="text" id="m-edit-phone" value="${escapeHtml(entry.phoneNo || '')}" placeholder="e.g. +91-9876543210" />
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label class="form-label" style="font-size:12px;">🏛️ GSTIN No.</label>
+          <input class="form-input" type="text" id="m-edit-gstin" value="${escapeHtml(entry.gstin || '')}" placeholder="Blank if not on invoice" style="font-family:var(--font-mono); letter-spacing:0.5px;" />
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label class="form-label" style="font-size:12px;">🍃 FSSAI License No.</label>
+          <input class="form-input" type="text" id="m-edit-fssai" value="${escapeHtml(entry.fssaiNo || '')}" placeholder="Blank if not on invoice" style="font-family:var(--font-mono); letter-spacing:0.5px;" />
+        </div>
+      </div>
+    </div>
   `;
+
 
   document.getElementById('modal-backdrop').style.display = 'flex';
 };
@@ -597,6 +621,10 @@ window.saveEditModal = async function() {
   const invoice = document.getElementById('m-edit-invoice')?.value.trim();
   const supplierLot = document.getElementById('m-edit-supplier-lot')?.value.trim() || "";
   const quality = document.getElementById('m-edit-quality')?.value || "Passed / Food Grade";
+  const supplierAddress = document.getElementById('m-edit-supplier-address')?.value.trim() || "";
+  const phoneNo = document.getElementById('m-edit-phone')?.value.trim() || "";
+  const gstin = document.getElementById('m-edit-gstin')?.value.trim() || "";
+  const fssaiNo = document.getElementById('m-edit-fssai')?.value.trim() || "";
   const qty = parseFloat(document.getElementById('m-edit-qty')?.value) || 0;
   const rate = parseFloat(document.getElementById('m-edit-rate')?.value) || 0;
   const total = parseFloat(document.getElementById('m-edit-total')?.value) || (qty * rate);
@@ -617,6 +645,10 @@ window.saveEditModal = async function() {
     date,
     material,
     supplier,
+    supplierAddress,
+    phoneNo,
+    gstin,
+    fssaiNo,
     invoice,
     supplierLot,
     quality,
