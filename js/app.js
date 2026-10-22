@@ -1230,7 +1230,11 @@ window.exportReport = function(type) {
     "Quantity (KG)",
     "Rate per KG (₹)",
     "Total Value (₹)",
-    "Quality Check / Status"
+    "Quality Check / Status",
+    "Supplier Address",
+    "Phone No.",
+    "GSTIN No.",
+    "FSSAI License No."
   ]);
 
   let sumQty = 0;
@@ -1254,12 +1258,16 @@ window.exportReport = function(type) {
       q,
       r,
       t,
-      e.quality || "Passed / Food Grade"
+      e.quality || "Passed / Food Grade",
+      e.supplierAddress || "",
+      e.phoneNo || "",
+      e.gstin || "",
+      e.fssaiNo || ""
     ]);
   });
 
   sheetRows.push([]);
-  sheetRows.push(["TOTAL:", "", "", "", "", "", "", sumQty, "", sumVal, ""]);
+  sheetRows.push(["TOTAL:", "", "", "", "", "", "", sumQty, "", sumVal, "", "", "", "", ""]);
   sheetRows.push([]);
   sheetRows.push(["Inspected & Verified By: Mukesh Vora (Quality Assurance)"]);
 
@@ -1276,8 +1284,13 @@ window.exportReport = function(type) {
     { wch: 15 }, // Qty
     { wch: 16 }, // Rate
     { wch: 18 }, // Total
-    { wch: 22 }  // Quality
+    { wch: 22 }, // Quality
+    { wch: 34 }, // Supplier Address
+    { wch: 18 }, // Phone No
+    { wch: 22 }, // GSTIN
+    { wch: 22 }  // FSSAI
   ];
+
 
   XLSX.utils.book_append_sheet(wb, ws, "Raw Material Inward");
   XLSX.writeFile(wb, fileName);
