@@ -106,16 +106,20 @@ CRITICAL: An invoice may have MULTIPLE line items / lots / commodities (from 1 t
 
 RETURN ONLY A VALID JSON OBJECT WITH THIS EXACT STRUCTURE:
 {
-  "purchase_date": "YYYY-MM-DD", // Invoice date or bill date. Default to "2026-10-18" if missing.
-  "supplier_name": "Full supplier, cold storage or mandi merchant name (e.g., K MAITRI FOODS & COLD STORAGE PVT. LTD.)",
-  "invoice_no": "Bill No or Tax Invoice No (e.g., K1520-2026)",
+  "purchase_date": "YYYY-MM-DD",
+  "supplier_name": "Full supplier / cold storage / mandi merchant name",
+  "supplier_address": "Full address of the supplier as printed on invoice (city, state). Empty string if not found.",
+  "phone_no": "Supplier phone or mobile number as printed. Empty string if not found.",
+  "gstin": "Supplier GSTIN number (15-char alphanumeric e.g. 27AABCK1234A1Z5). Empty string if not printed.",
+  "fssai_no": "Supplier FSSAI License number (14-digit e.g. 10013022000038). Empty string if not printed.",
+  "invoice_no": "Bill No or Tax Invoice No",
   "items": [
     {
-      "raw_material_name": "Standardized spice commodity name (e.g. 'Dry Chilli Powder', 'White Chinese Masala', 'Coriander Powder', 'Cumin Seeds', etc.)",
-      "supplier_lot": "Printed lot number, receipt number or batch number (e.g. '3704/43', '3705/12', '3706/66')",
-      "quantity_kg": 30, // Net weight in KG, or units/bags charged as a number
-      "rate_per_kg": 48.0, // Rate per KG or unit charge in INR as a number
-      "total_value": 1440.0, // Line item total amount in INR as a number
+      "raw_material_name": "Standardized spice commodity name",
+      "supplier_lot": "Lot / receipt / batch number",
+      "quantity_kg": 30,
+      "rate_per_kg": 48.0,
+      "total_value": 1440.0,
       "quality_status": "Passed / Food Grade"
     }
   ]
@@ -123,10 +127,11 @@ RETURN ONLY A VALID JSON OBJECT WITH THIS EXACT STRUCTURE:
 
 CRITICAL EXTRACTION RULES:
 1. Extract ALL line items in the table into the "items" array. Never omit any row!
-2. Standardize raw_material_name by removing tags like "-50" or "(RAW MATERIAL)" (e.g. "DRY CHILLI POWDER (RAW MATERIAL)-50" -> "Dry Chilli Powder").
-3. If quantity is in bags (e.g. 50kg bags), calculate net weight in KG or use the charged quantity.
-4. Ensure numbers are numbers, not strings.
+2. Standardize raw_material_name (e.g. "DRY CHILLI POWDER (RAW MATERIAL)-50" -> "Dry Chilli Powder").
+3. If quantity is in bags, calculate net weight in KG.
+4. All numbers must be numbers, not strings.
 5. Return ONLY a single valid JSON object. No markdown, no extra text.
+6. For supplier_address, phone_no, gstin, fssai_no — use empty string if not visible on invoice.
 `;
 
   let attempts = 0;
@@ -257,9 +262,12 @@ CRITICAL EXTRACTION RULES:
         return {
           date: parsed.purchase_date || new Date().toISOString().split('T')[0],
           supplier: parsed.supplier_name || "Supplier / Mandi Merchant",
+          supplierAddress: parsed.supplier_address || "",
+          phoneNo: parsed.phone_no || "",
+          gstin: parsed.gstin || "",
+          fssaiNo: parsed.fssai_no || "",
           invoice: parsed.invoice_no || `INV-${Date.now().toString().slice(-4)}`,
           items: items.length > 0 ? items : [firstItem],
-          // Compatibility for single-item accessors
           material: firstItem.material,
           supplierLot: firstItem.supplierLot,
           qty: firstItem.qty,
@@ -290,6 +298,10 @@ CRITICAL EXTRACTION RULES:
   return {
     date: new Date().toISOString().split('T')[0],
     supplier: "K MAITRI FOODS & COLD STORAGE PVT. LTD.",
+    supplierAddress: "Lasalgaon, Nashik, Maharashtra",
+    phoneNo: "",
+    gstin: "",
+    fssaiNo: "",
     invoice: `K1520-2026`,
     items: fallbackItems,
     material: fallbackItems[0].material,

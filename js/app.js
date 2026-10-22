@@ -2,7 +2,7 @@
 // FSSAI Quality & Traceability with Firebase Firestore Cloud Sync & Gemini Vision AI
 
 import { saveEntryToCloud, deleteEntryFromCloud, loadAllRawEntriesFromCloud, updateCloudBadge } from './firebase-config.js?v=3.1.0';
-import { scanRawMaterialInvoice } from './ocr.js?v=3.1.0';
+import { scanRawMaterialInvoice } from './ocr.js?v=3.2.0';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // OCTOBER 2026 PRE-POPULATED REALISTIC CONSIGNMENTS
@@ -825,7 +825,33 @@ window.renderScannedInvoiceUI = function() {
             <input class="form-input" type="text" id="scan-invoice" value="${escapeHtml(scannedCandidate.invoice)}" oninput="scannedCandidate.invoice = this.value" />
           </div>
         </div>
+
+        <!-- Supplier Compliance Details -->
+        <div style="margin-top:14px; padding-top:14px; border-top:1px dashed var(--border-color);">
+          <div style="font-size:11px; font-weight:800; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px;">
+            📋 Supplier Compliance Details <span style="font-weight:500; font-size:10px; color:#94A3B8;">(auto-extracted — leave blank if not on invoice)</span>
+          </div>
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:12px;">
+            <div class="form-group" style="margin:0;">
+              <label class="form-label" style="font-size:12px; font-weight:700;">📍 Supplier Address</label>
+              <input class="form-input" type="text" id="scan-supplier-address" value="${escapeHtml(scannedCandidate.supplierAddress || '')}" oninput="scannedCandidate.supplierAddress = this.value" placeholder="e.g. Lasalgaon, Nashik, Maharashtra" />
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label class="form-label" style="font-size:12px; font-weight:700;">📞 Phone No.</label>
+              <input class="form-input" type="text" id="scan-phone" value="${escapeHtml(scannedCandidate.phoneNo || '')}" oninput="scannedCandidate.phoneNo = this.value" placeholder="e.g. +91-9876543210" />
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label class="form-label" style="font-size:12px; font-weight:700;">🏛️ GSTIN No.</label>
+              <input class="form-input" type="text" id="scan-gstin" value="${escapeHtml(scannedCandidate.gstin || '')}" oninput="scannedCandidate.gstin = this.value" placeholder="Blank if not on invoice" style="font-family:var(--font-mono); font-size:12px; letter-spacing:0.5px;" />
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label class="form-label" style="font-size:12px; font-weight:700;">🍃 FSSAI License No.</label>
+              <input class="form-input" type="text" id="scan-fssai" value="${escapeHtml(scannedCandidate.fssaiNo || '')}" oninput="scannedCandidate.fssaiNo = this.value" placeholder="Blank if not on invoice" style="font-family:var(--font-mono); font-size:12px; letter-spacing:0.5px;" />
+            </div>
+          </div>
+        </div>
       </div>
+
 
       <!-- Line Items Table -->
       <div>
@@ -1014,6 +1040,10 @@ window.confirmScan = async function() {
   const commonDate = document.getElementById('scan-date')?.value || scannedCandidate.date;
   const commonSupplier = document.getElementById('scan-supplier')?.value.trim() || scannedCandidate.supplier;
   const commonInvoice = document.getElementById('scan-invoice')?.value.trim() || scannedCandidate.invoice;
+  const commonSupplierAddress = document.getElementById('scan-supplier-address')?.value.trim() || scannedCandidate.supplierAddress || '';
+  const commonPhoneNo = document.getElementById('scan-phone')?.value.trim() || scannedCandidate.phoneNo || '';
+  const commonGstin = document.getElementById('scan-gstin')?.value.trim() || scannedCandidate.gstin || '';
+  const commonFssaiNo = document.getElementById('scan-fssai')?.value.trim() || scannedCandidate.fssaiNo || '';
 
   const usedLots = new Set(entries.map(e => (e.ourLot || '').trim()).filter(Boolean));
   const newEntries = [];
@@ -1044,6 +1074,10 @@ window.confirmScan = async function() {
       date: commonDate,
       material: material || "Dry Chilli Powder",
       supplier: commonSupplier,
+      supplierAddress: commonSupplierAddress,
+      phoneNo: commonPhoneNo,
+      gstin: commonGstin,
+      fssaiNo: commonFssaiNo,
       invoice: commonInvoice,
       supplierLot: supplierLot || "—",
       ourLot: ourLot,
