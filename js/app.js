@@ -258,13 +258,11 @@ function renderTable(dataToRender = null) {
         <td style="text-align:center; font-weight:600; color:var(--text-secondary);">${idx + 1}</td>
         <td style="font-size:12px; color:var(--text-secondary); white-space:nowrap;">${entry.date || '—'}</td>
         <td style="max-width:170px;">${matDisplay}</td>
-        <td style="font-size:11.5px; color:var(--text-secondary); line-height:1.4; max-width:175px;">
-          <div style="font-weight:600; color:var(--text-primary);">${escapeHtml(entry.supplier || '—')}</div>
-          ${entry.supplierAddress ? `<div style="font-size:10.5px; color:#64748B; margin-top:2px;">📍 ${escapeHtml(entry.supplierAddress)}</div>` : ''}
-          ${entry.phoneNo ? `<div style="font-size:10.5px; color:#64748B;">📞 ${escapeHtml(entry.phoneNo)}</div>` : ''}
-          ${entry.gstin ? `<div style="font-size:10px; color:#64748B; font-family:'SF Mono',Consolas,monospace; letter-spacing:0.3px;">GSTIN: ${escapeHtml(entry.gstin)}</div>` : ''}
-          ${entry.fssaiNo ? `<div style="font-size:10px; color:#64748B; font-family:'SF Mono',Consolas,monospace;">FSSAI: ${escapeHtml(entry.fssaiNo)}</div>` : ''}
-        </td>
+        <td style="font-size:11.5px; color:var(--text-primary); font-weight:600; line-height:1.3; max-width:140px;">${escapeHtml(entry.supplier || '—')}</td>
+        <td style="font-size:11px; color:var(--text-secondary); max-width:155px;">${escapeHtml(entry.supplierAddress || '—')}</td>
+        <td style="font-size:11px; color:var(--text-secondary); white-space:nowrap;">${escapeHtml(entry.phoneNo || '—')}</td>
+        <td style="font-size:10.5px; color:var(--text-secondary); font-family:'SF Mono',Consolas,monospace; letter-spacing:0.3px;">${escapeHtml(entry.gstin || '—')}</td>
+        <td style="font-size:10.5px; color:var(--text-secondary); font-family:'SF Mono',Consolas,monospace;">${escapeHtml(entry.fssaiNo || '—')}</td>
         <td style="font-family:'SF Mono',Consolas,monospace; font-size:11.5px; font-weight:500; color:var(--text-primary); white-space:nowrap;">${escapeHtml(entry.invoice || '—')}</td>
         <td style="font-size:11.5px; color:var(--text-secondary); max-width:105px;">${escapeHtml(entry.supplierLot || '—')}</td>
         <td style="font-size:11.5px; font-weight:600; color:var(--text-primary); white-space:nowrap;">${escapeHtml(entry.ourLot || '—')}</td>
@@ -289,7 +287,7 @@ function renderTable(dataToRender = null) {
   if (tfoot) {
     tfoot.innerHTML = `
       <tr class="tfoot-row">
-        <td colspan="7" style="text-align:right; font-weight:800; color:var(--text-secondary); text-transform:uppercase; font-size:11.5px; letter-spacing:0.5px;">TOTAL CONSIGNMENTS (${data.length}):</td>
+        <td colspan="11" style="text-align:right; font-weight:800; color:var(--text-secondary); text-transform:uppercase; font-size:11.5px; letter-spacing:0.5px;">TOTAL CONSIGNMENTS (${data.length}):</td>
         <td class="num-col font-bold" style="color:var(--text-primary);">${formatNum(totalQty)} KG</td>
         <td></td>
         <td class="num-col font-bold total-green" style="font-size:14px;">₹${formatNum(totalVal)}</td>
