@@ -258,7 +258,13 @@ function renderTable(dataToRender = null) {
         <td style="text-align:center; font-weight:600; color:var(--text-secondary);">${idx + 1}</td>
         <td style="font-size:12px; color:var(--text-secondary); white-space:nowrap;">${entry.date || '—'}</td>
         <td style="max-width:170px;">${matDisplay}</td>
-        <td style="font-size:11.5px; color:var(--text-secondary); line-height:1.3; max-width:155px;">${escapeHtml(entry.supplier || '—')}</td>
+        <td style="font-size:11.5px; color:var(--text-secondary); line-height:1.4; max-width:175px;">
+          <div style="font-weight:600; color:var(--text-primary);">${escapeHtml(entry.supplier || '—')}</div>
+          ${entry.supplierAddress ? `<div style="font-size:10.5px; color:#64748B; margin-top:2px;">📍 ${escapeHtml(entry.supplierAddress)}</div>` : ''}
+          ${entry.phoneNo ? `<div style="font-size:10.5px; color:#64748B;">📞 ${escapeHtml(entry.phoneNo)}</div>` : ''}
+          ${entry.gstin ? `<div style="font-size:10px; color:#64748B; font-family:'SF Mono',Consolas,monospace; letter-spacing:0.3px;">GSTIN: ${escapeHtml(entry.gstin)}</div>` : ''}
+          ${entry.fssaiNo ? `<div style="font-size:10px; color:#64748B; font-family:'SF Mono',Consolas,monospace;">FSSAI: ${escapeHtml(entry.fssaiNo)}</div>` : ''}
+        </td>
         <td style="font-family:'SF Mono',Consolas,monospace; font-size:11.5px; font-weight:500; color:var(--text-primary); white-space:nowrap;">${escapeHtml(entry.invoice || '—')}</td>
         <td style="font-size:11.5px; color:var(--text-secondary); max-width:105px;">${escapeHtml(entry.supplierLot || '—')}</td>
         <td style="font-size:11.5px; font-weight:600; color:var(--text-primary); white-space:nowrap;">${escapeHtml(entry.ourLot || '—')}</td>
@@ -1218,23 +1224,23 @@ window.exportReport = function(type) {
   sheetRows.push(["FSSAI Schedule 4 GMP & Traceability Standard"]);
   sheetRows.push([]); // blank
 
-  // Column Headers matching client sheet:
+  // Column Headers — 4 compliance fields right after Supplier Name
   sheetRows.push([
     "Sr. No.",
     "Purchase Date",
     "Raw Material Name",
     "Supplier Name",
+    "Supplier Address",
+    "Phone No.",
+    "GSTIN No.",
+    "FSSAI License No.",
     "Invoice No.",
     "Supplier Lot / Vehicle",
     "Our Lot No.",
     "Quantity (KG)",
-    "Rate per KG (₹)",
-    "Total Value (₹)",
-    "Quality Check / Status",
-    "Supplier Address",
-    "Phone No.",
-    "GSTIN No.",
-    "FSSAI License No."
+    "Rate per KG (\u20b9)",
+    "Total Value (\u20b9)",
+    "Quality Check / Status"
   ]);
 
   let sumQty = 0;
@@ -1252,22 +1258,22 @@ window.exportReport = function(type) {
       e.date,
       e.material,
       e.supplier,
+      e.supplierAddress || "",
+      e.phoneNo || "",
+      e.gstin || "",
+      e.fssaiNo || "",
       e.invoice,
-      e.supplierLot || "—",
+      e.supplierLot || "\u2014",
       e.ourLot,
       q,
       r,
       t,
-      e.quality || "Passed / Food Grade",
-      e.supplierAddress || "",
-      e.phoneNo || "",
-      e.gstin || "",
-      e.fssaiNo || ""
+      e.quality || "Passed / Food Grade"
     ]);
   });
 
   sheetRows.push([]);
-  sheetRows.push(["TOTAL:", "", "", "", "", "", "", sumQty, "", sumVal, "", "", "", "", ""]);
+  sheetRows.push(["TOTAL:", "", "", "", "", "", "", "", "", "", "", sumQty, "", sumVal, ""]);
   sheetRows.push([]);
   sheetRows.push(["Inspected & Verified By: Mukesh Vora (Quality Assurance)"]);
 
@@ -1277,18 +1283,18 @@ window.exportReport = function(type) {
     { wch: 8 },  // Sr
     { wch: 14 }, // Date
     { wch: 32 }, // Material
-    { wch: 34 }, // Supplier
-    { wch: 16 }, // Invoice
-    { wch: 22 }, // Supplier Lot
-    { wch: 15 }, // Our Lot
-    { wch: 15 }, // Qty
-    { wch: 16 }, // Rate
-    { wch: 18 }, // Total
-    { wch: 22 }, // Quality
+    { wch: 30 }, // Supplier Name
     { wch: 34 }, // Supplier Address
     { wch: 18 }, // Phone No
     { wch: 22 }, // GSTIN
-    { wch: 22 }  // FSSAI
+    { wch: 22 }, // FSSAI
+    { wch: 16 }, // Invoice
+    { wch: 22 }, // Supplier Lot
+    { wch: 15 }, // Our Lot
+    { wch: 14 }, // Qty
+    { wch: 14 }, // Rate
+    { wch: 16 }, // Total
+    { wch: 22 }  // Quality
   ];
 
 
