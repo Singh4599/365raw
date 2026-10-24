@@ -2046,3 +2046,86 @@ select.form-input {
   object-fit: contain;
   display: block;
 }
+
+/* ─── A4 LANDSCAPE PRINT ─────────────────────────────────────────────── */
+@media print {
+  @page { size: A4 landscape; margin: 8mm 8mm 8mm 8mm; }
+
+  /* Hide everything except the register table */
+  .sidebar, .sidebar-overlay, .app-header,
+  .official-banner, .stats-bar,
+  .period-pills-bar, .filter-bar,
+  #view-add, #view-scan, #view-summary,
+  .table-action-btn, .tbl-footer,
+  button, .tfoot-row td:last-child { display: none !important; }
+
+  /* Remove layout chrome */
+  body { background: #fff !important; }
+  .app-layout, .main-content, .view-panel, #view-register {
+    display: block !important;
+    margin: 0 !important; padding: 0 !important;
+    width: 100% !important; max-width: 100% !important;
+    box-shadow: none !important; border: none !important;
+  }
+
+  /* Make table fill full landscape width */
+  .table-scroll {
+    overflow: visible !important;
+    width: 100% !important;
+  }
+
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    table-layout: auto !important;
+    font-size: 7pt !important;
+    page-break-inside: auto;
+  }
+
+  thead { display: table-header-group; }
+  tr { page-break-inside: avoid; page-break-after: auto; }
+
+  th {
+    background: #1a1a1a !important;
+    color: #fff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    font-size: 6.5pt !important;
+    padding: 4pt 3pt !important;
+    border: 0.75pt solid #000 !important;
+    white-space: nowrap !important;
+  }
+
+  td {
+    font-size: 7pt !important;
+    padding: 3pt 3pt !important;
+    border: 0.5pt solid #999 !important;
+    vertical-align: middle !important;
+  }
+
+  /* Keep colored badge backgrounds */
+  .status-pill {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    font-size: 6pt !important;
+    padding: 1pt 3pt !important;
+    white-space: nowrap !important;
+  }
+
+  /* Hide Actions column (last th/td in each row) */
+  th:last-child, td:last-child { display: none !important; }
+
+  /* Print title above table */
+  #view-register::before {
+    content: "L V SPICES — Raw Material Inward & Quality Log Register";
+    display: block;
+    font-family: Arial, sans-serif;
+    font-size: 11pt;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5pt;
+    border: 2pt solid #000;
+    padding: 5pt 8pt;
+    margin-bottom: 4pt;
+  }
+}
