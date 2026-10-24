@@ -1475,6 +1475,130 @@ function showToast(msg) {
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
+// PRINT A4 — LANDSCAPE REGISTER
+// ──────────────────────────────────────────────────────────────────────────────
+window.printA4Register = function() {
+  const data = getFilteredData().sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+
+  let totalQty = 0, totalVal = 0;
+  data.forEach(e => {
+    totalQty += parseFloat(e.qty) || 0;
+    totalVal += parseFloat(e.total) || ((parseFloat(e.qty)||0) * (parseFloat(e.rate)||0));
+  });
+
+  function esc(s) {
+    if (!s) return '—';
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  function fmt(n) {
+    const num = parseFloat(n) || 0;
+    return num % 1 === 0 ? num.toLocaleString('en-IN') : num.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2});
+  }
+
+  const rowsHtml = data.map((e, i) => {
+    const qty = parseFloat(e.qty) || 0;
+    const rate = parseFloat(e.rate) || 0;
+    const total = parseFloat(e.total) || (qty * rate);
+    const quality = e.quality || 'Passed / Food Grade';
+    let qBg = '#d4edda'; let qColor = '#155724';
+    if (quality.toLowerCase().includes('reject')) { qBg='#f8d7da'; qColor='#721c24'; }
+    else if (quality.toLowerCase().includes('minor') || quality.toLowerCase().includes('sorting')) { qBg='#fff3cd'; qColor='#856404'; }
+    else if (quality.toLowerCase().includes('lab') || quality.toLowerCase().includes('testing')) { qBg='#d1ecf1'; qColor='#0c5460'; }
+    return `<tr>
+      <td style="text-align:center">${i+1}</td>
+      <td>${esc(e.date)}</td>
+      <td><b>${esc(e.material)}</b></td>
+      <td>${esc(e.supplier)}</td>
+      <td style="font-size:6.5pt">${esc(e.supplierAddress)}</td>
+      <td>${esc(e.phoneNo)}</td>
+      <td style="font-family:monospace;font-size:6pt">${esc(e.gstin)}</td>
+      <td style="font-family:monospace;font-size:6pt">${esc(e.fssaiNo)}</td>
+      <td style="font-family:monospace">${esc(e.invoice)}</td>
+      <td>${esc(e.supplierLot)}</td>
+      <td><b>${esc(e.ourLot)}</b></td>
+      <td style="text-align:right"><b>${fmt(qty)}</b></td>
+      <td style="text-align:right">₹${fmt(rate)}</td>
+      <td style="text-align:right;color:#15803d"><b>₹${fmt(total)}</b></td>
+      <td style="text-align:center"><span style="background:${qBg};color:${qColor};border:0.5pt solid ${qColor};padding:0 3pt;border-radius:2pt;font-size:6pt;font-weight:700;white-space:nowrap">${esc(quality)}</span></td>
+    </tr>`;
+  }).join('');
+
+  const monthLabel = (() => {
+    const m = document.getElementById('month-filter')?.value;
+    if (m) return m;
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  })();
+
+  const printHtml = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8"/>
+<title>LV Spices — Raw Material Inward Register</title>
+<style>
+  @page { size: A4 landscape; margin: 0; }
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+  html, body { font-family: Arial, Helvetica, sans-serif; font-size: 7.5pt; color:#000; background:#fff; }
+  .wrap { width: 270mm; margin: 8mm auto 8mm auto; }
+  .header { border:2px solid #000; padding:6pt 8pt; margin-bottom:5pt; }
+  .header h1 { font-size:12pt; font-weight:800; text-transform:uppercase; letter-spacing:0.5pt; }
+  .header p { font-size:7pt; color:#444; margin-top:2pt; }
+  .pills { display:flex; flex-wrap:wrap; gap:4pt; margin-top:5pt; }
+  .pill { border:1px solid #555; padding:1pt 5pt; font-size:6.5pt; border-radius:3pt; }
+  .pill b { color:#B91C1C; }
+  table { width:100%; border-collapse:collapse; table-layout:fixed; margin-top:4pt; }
+  thead { display:table-header-group; }
+  th { background:#1a1a1a; color:#fff; padding:4pt 2pt; border:0.75pt solid #000; font-size:6.5pt; font-weight:700; text-align:left; white-space:nowrap; overflow:hidden; }
+  td { padding:3pt 2pt; border:0.5pt solid #aaa; font-size:7pt; vertical-align:middle; overflow:hidden; word-break:break-word; }
+  tr:nth-child(even) td { background:#fafafa; }
+  .tfoot td { background:#f0f0f0; font-weight:700; font-size:7pt; border-top:1.5pt solid #000; }
+  /* A4 landscape usable = 297mm - 16mm margin = 270mm + 10mm (wrap margin) = approx 270mm
+     Cols: SR 7 | DATE 18 | MATERIAL 30 | SUPPLIER 24 | ADDR 28 | PHONE 18 | GSTIN 24 | FSSAI 22 | INV 18 | SUP-LOT 18 | OUR-LOT 18 | QTY 12 | RATE 12 | TOTAL 14 | QUALITY 27 = 270mm */
+  col.c1{width:7mm} col.c2{width:18mm} col.c3{width:30mm} col.c4{width:24mm} col.c5{width:28mm}
+  col.c6{width:18mm} col.c7{width:24mm} col.c8{width:22mm} col.c9{width:18mm} col.c10{width:18mm}
+  col.c11{width:18mm} col.c12{width:12mm} col.c13{width:12mm} col.c14{width:14mm} col.c15{width:27mm}
+</style></head><body>
+<div class="wrap">
+<div class="header">
+  <h1>Raw Material Inward &amp; Quality Log Register — L V Spices</h1>
+  <p>FSSAI Schedule 4 GMP Compliance &bull; Raw Material Receipt &amp; Traceability</p>
+  <div class="pills">
+    <span class="pill">📅 Month: <b>${monthLabel}</b></span>
+    <span class="pill">👤 Supervisor: <b>Mukesh Vora</b></span>
+    <span class="pill">📦 Total Consignments: <b>${data.length}</b></span>
+    <span class="pill">⚖️ Total Weight: <b>${fmt(totalQty)} KG</b></span>
+    <span class="pill">💰 Total Value: <b>₹${fmt(totalVal)}</b></span>
+    <span class="pill">🖨️ Printed: <b>${new Date().toLocaleDateString('en-IN')}</b></span>
+  </div>
+</div>
+<table>
+  <colgroup>
+    <col class="c1"/><col class="c2"/><col class="c3"/><col class="c4"/><col class="c5"/>
+    <col class="c6"/><col class="c7"/><col class="c8"/><col class="c9"/><col class="c10"/>
+    <col class="c11"/><col class="c12"/><col class="c13"/><col class="c14"/><col class="c15"/>
+  </colgroup>
+  <thead><tr>
+    <th>SR.</th><th>DATE</th><th>RAW MATERIAL</th><th>SUPPLIER</th><th>ADDRESS</th>
+    <th>PHONE</th><th>GSTIN</th><th>FSSAI NO.</th><th>INVOICE</th><th>SUPPLIER LOT</th>
+    <th>OUR LOT</th><th>QTY (KG)</th><th>RATE/KG</th><th>TOTAL (₹)</th><th>QUALITY STATUS</th>
+  </tr></thead>
+  <tbody>${rowsHtml}</tbody>
+  <tfoot><tr class="tfoot">
+    <td colspan="11" style="text-align:right;padding-right:6pt">TOTAL CONSIGNMENTS (${data.length}):</td>
+    <td style="text-align:right"><b>${fmt(totalQty)}</b></td>
+    <td></td>
+    <td style="text-align:right;color:#15803d"><b>₹${fmt(totalVal)}</b></td>
+    <td></td>
+  </tr></tfoot>
+</table>
+</div>
+<script>window.onload=function(){window.print();setTimeout(function(){window.close();},800);};<\/script>
+</body></html>`;
+
+  const pw = window.open('', '_blank', 'width=1123,height=794');
+  if (pw) { pw.document.write(printHtml); pw.document.close(); }
+  else { alert('Please allow popups to use Print A4.'); }
+};
+
+// ──────────────────────────────────────────────────────────────────────────────
 // INITIALIZE
 // ──────────────────────────────────────────────────────────────────────────────
 if (document.readyState === 'loading') {
