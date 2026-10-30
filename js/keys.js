@@ -18,7 +18,7 @@ export function getActiveGeminiKey() {
     const raw = _B64_KEYS[currentKeyIndex % _B64_KEYS.length];
     return atob(raw);
   } catch (e) {
-    return "";
+    return ""
   }
 }
 
