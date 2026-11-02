@@ -237,10 +237,13 @@
                 <th style="width:130px;">GSTIN NO.</th>
                 <th style="width:130px;">FSSAI LICENSE NO.</th>
                 <th style="width:100px;">INVOICE NO.</th>
-                <th style="width:105px;">SUPPLIER LOT / VEHICLE</th>
-                <th style="width:95px;">OUR LOT NO.</th>
+                <th style="width:90px;">HSN CODE</th>
+                <th style="width:120px;">SUPPLIER BATCH NO.</th>
+                <th style="width:70px;" class="num-col">NO. OF BAGS</th>
                 <th style="width:78px;" class="num-col">QTY (KG)</th>
                 <th style="width:75px;" class="num-col">RATE/KG (₹)</th>
+                <th style="width:60px;" class="num-col">GST (%)</th>
+                <th style="width:90px;" class="num-col">OTHER CHG. (₹)</th>
                 <th style="width:95px;" class="num-col">TOTAL (₹)</th>
                 <th style="width:125px; text-align:center;">QUALITY STATUS</th>
                 <th style="width:70px; text-align:center;">ACTIONS</th>
@@ -331,8 +334,12 @@
             <input class="form-input" type="text" id="f-invoice" placeholder="e.g., INV-2026-8812" />
           </div>
           <div class="form-group">
-            <label class="form-label">Supplier Lot / Truck No.</label>
-            <input class="form-input" type="text" id="f-supplier-lot" placeholder="e.g., RJ-14-GA-8821 / BATCH-01" />
+            <label class="form-label">HSN Code</label>
+            <input class="form-input" type="text" id="f-hsn" placeholder="e.g., 0904" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Supplier Batch No.</label>
+            <input class="form-input" type="text" id="f-supplier-lot" placeholder="e.g., BATCH-01 / LOT-2026" />
           </div>
         </div>
 
@@ -343,10 +350,10 @@
         </div>
         <div class="form-grid">
           <div class="form-group">
-            <label class="form-label">Our Inward Lot No. <span class="tag-auto">AUTO-ASSIGNED</span></label>
-            <div class="input-lock-wrap">
-              <svg class="input-lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-              <input class="form-input locked-input" type="text" id="f-our-lot" readonly />
+            <label class="form-label">No. of Bags</label>
+            <div class="input-unit-wrap">
+              <input class="form-input" type="number" id="f-bags" placeholder="e.g. 10" step="1" min="0" />
+              <span class="input-unit-tag">BAGS</span>
             </div>
           </div>
           <div class="form-group">
@@ -361,6 +368,20 @@
             <div class="input-unit-wrap">
               <input class="form-input" type="number" id="f-rate" placeholder="280.00" step="0.01" min="0" oninput="calcTotal()" />
               <span class="input-unit-tag">₹ / KG</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">GST (%)</label>
+            <div class="input-unit-wrap">
+              <input class="form-input" type="number" id="f-gst" placeholder="5" step="0.01" min="0" max="100" oninput="calcTotal()" />
+              <span class="input-unit-tag">%</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Other Charges (₹)</label>
+            <div class="input-unit-wrap">
+              <input class="form-input" type="number" id="f-other-charges" placeholder="0.00" step="0.01" min="0" oninput="calcTotal()" />
+              <span class="input-unit-tag">₹</span>
             </div>
           </div>
           <div class="form-group form-group-span">

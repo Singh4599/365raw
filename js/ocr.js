@@ -116,9 +116,13 @@ RETURN ONLY A VALID JSON OBJECT WITH THIS EXACT STRUCTURE:
   "items": [
     {
       "raw_material_name": "Standardized spice commodity name",
-      "supplier_lot": "Lot / receipt / batch number",
+      "hsn_code": "HSN / SAC code from invoice (4-8 digit code). Null if not found.",
+      "supplier_batch_no": "Supplier batch number / lot number / receipt number. Null if not found.",
+      "no_of_bags": "Number of bags / packets from invoice. Null if not found.",
       "quantity_kg": 30,
       "rate_per_kg": 48.0,
+      "gst_percent": "GST percentage (e.g. 5, 12, 18). Null if not found.",
+      "other_charges": "Any other charges like freight, handling in ₹. Null if not found.",
       "total_value": 1440.0,
       "quality_status": "Passed / Food Grade"
     }
@@ -128,10 +132,11 @@ RETURN ONLY A VALID JSON OBJECT WITH THIS EXACT STRUCTURE:
 CRITICAL EXTRACTION RULES:
 1. Extract ALL line items in the table into the "items" array. Never omit any row!
 2. Standardize raw_material_name (e.g. "DRY CHILLI POWDER (RAW MATERIAL)-50" -> "Dry Chilli Powder").
-3. If quantity is in bags, calculate net weight in KG.
-4. All numbers must be numbers, not strings.
+3. If quantity is in bags, fill no_of_bags AND calculate net weight in KG for quantity_kg.
+4. All numbers must be numbers (not strings) except hsn_code which is a string. Null means not found.
 5. Return ONLY a single valid JSON object. No markdown, no extra text.
 6. For supplier_address, phone_no, gstin, fssai_no — use empty string if not visible on invoice.
+7. For hsn_code, supplier_batch_no, no_of_bags, gst_percent, other_charges — use null if not found.
 `;
 
   let attempts = 0;
@@ -237,13 +242,21 @@ CRITICAL EXTRACTION RULES:
         const items = rawItems.map((item, idx) => {
           const qty = parseFloat(item.quantity_kg) || 0;
           const rate = parseFloat(item.rate_per_kg) || 0;
-          const total = parseFloat(item.total_value) || Math.round(qty * rate);
+          const gst = item.gst_percent != null ? parseFloat(item.gst_percent) || null : null;
+          const oc = item.other_charges != null ? parseFloat(item.other_charges) || null : null;
+          const base = qty * rate;
+          const gstAmt = gst ? base * gst / 100 : 0;
+          const total = parseFloat(item.total_value) || Math.round(base + gstAmt + (oc || 0));
           return {
             id: idx + 1,
             material: item.raw_material_name || `Spice Commodity #${idx + 1}`,
-            supplierLot: item.supplier_lot || `LOT-${String(idx + 1).padStart(2, '0')}`,
+            hsnCode: item.hsn_code || null,
+            supplierLot: item.supplier_batch_no || item.supplier_lot || null,
+            noOfBags: item.no_of_bags != null ? parseFloat(item.no_of_bags) || null : null,
             qty: qty,
             rate: rate,
+            gst: gst,
+            otherCharges: oc,
             total: total,
             quality: item.quality_status || "Passed / Food Grade"
           };
@@ -252,9 +265,13 @@ CRITICAL EXTRACTION RULES:
         const firstItem = items[0] || {
           id: 1,
           material: "Cumin Seeds (Jeera)",
-          supplierLot: "LOT-01",
+          hsnCode: null,
+          supplierLot: null,
+          noOfBags: null,
           qty: 1000,
           rate: 220,
+          gst: null,
+          otherCharges: null,
           total: 220000,
           quality: "Passed / Food Grade"
         };
@@ -269,9 +286,13 @@ CRITICAL EXTRACTION RULES:
           invoice: parsed.invoice_no || `INV-${Date.now().toString().slice(-4)}`,
           items: items.length > 0 ? items : [firstItem],
           material: firstItem.material,
+          hsnCode: firstItem.hsnCode,
           supplierLot: firstItem.supplierLot,
+          noOfBags: firstItem.noOfBags,
           qty: firstItem.qty,
           rate: firstItem.rate,
+          gst: firstItem.gst,
+          otherCharges: firstItem.otherCharges,
           total: firstItem.total,
           quality: firstItem.quality,
           thumbData: thumbData

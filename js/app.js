@@ -190,11 +190,7 @@ function updateNextLotPreview() {
   const el = document.getElementById('next-lot-preview');
   if (el) el.textContent = `Next Lot: ${mat ? previewLot : 'Initials-MMYY (e.g. CW-1026)'}`;
 
-  const ourLotInput = document.getElementById('f-our-lot');
-  if (ourLotInput && !editingId) {
-    ourLotInput.value = mat ? previewLot : '';
-    ourLotInput.placeholder = previewLot || 'e.g. CW-1026';
-  }
+  // f-our-lot removed; noOfBags replaces it
 }
 
 function updateSupplierList() {
@@ -264,10 +260,13 @@ function renderTable(dataToRender = null) {
         <td style="font-size:10.5px; color:var(--text-secondary); font-family:'SF Mono',Consolas,monospace; letter-spacing:0.3px;">${escapeHtml(entry.gstin || '—')}</td>
         <td style="font-size:10.5px; color:var(--text-secondary); font-family:'SF Mono',Consolas,monospace;">${escapeHtml(entry.fssaiNo || '—')}</td>
         <td style="font-family:'SF Mono',Consolas,monospace; font-size:11.5px; font-weight:500; color:var(--text-primary); white-space:nowrap;">${escapeHtml(entry.invoice || '—')}</td>
-        <td style="font-size:11.5px; color:var(--text-secondary); max-width:105px;">${escapeHtml(entry.supplierLot || '—')}</td>
-        <td style="font-size:11.5px; font-weight:600; color:var(--text-primary); white-space:nowrap;">${escapeHtml(entry.ourLot || '—')}</td>
+        <td style="font-size:10.5px; color:var(--text-secondary); font-family:'SF Mono',Consolas,monospace;">${escapeHtml(entry.hsnCode || '—')}</td>
+        <td style="font-size:11.5px; color:var(--text-secondary); max-width:120px;">${escapeHtml(entry.supplierLot || '—')}</td>
+        <td class="num-col">${entry.noOfBags ? formatNum(entry.noOfBags) : '—'}</td>
         <td class="num-col font-bold">${formatNum(qty)}</td>
         <td class="num-col">₹${formatNum(rate)}</td>
+        <td class="num-col">${entry.gst ? entry.gst + '%' : '—'}</td>
+        <td class="num-col">${entry.otherCharges ? '₹' + formatNum(entry.otherCharges) : '—'}</td>
         <td class="num-col total-green">₹${formatNum(total)}</td>
         <td style="text-align:center;">
           <span class="status-pill ${qualityClass}">${escapeHtml(qualityText)}</span>
@@ -374,7 +373,9 @@ function getFilteredData() {
       (e.material || '').toLowerCase().includes(search) ||
       (e.supplier || '').toLowerCase().includes(search) ||
       (e.invoice || '').toLowerCase().includes(search) ||
-      (e.ourLot || '').toLowerCase().includes(search);
+      (e.hsnCode || '').toLowerCase().includes(search) ||
+      (e.supplierLot || '').toLowerCase().includes(search) ||
+      String(e.noOfBags || '').toLowerCase().includes(search);
 
     // 3. Month Input Filtering (only if period is 'all')
     const matchMonth = periodFilter !== 'all' || !month || (e.date || '').startsWith(month);
@@ -405,7 +406,11 @@ window.clearFilters = function() {
 window.calcTotal = function() {
   const q = parseFloat(document.getElementById('f-qty').value) || 0;
   const r = parseFloat(document.getElementById('f-rate').value) || 0;
-  document.getElementById('f-total').value = (q * r).toFixed(2);
+  const g = parseFloat(document.getElementById('f-gst') && document.getElementById('f-gst').value) || 0;
+  const oc = parseFloat(document.getElementById('f-other-charges') && document.getElementById('f-other-charges').value) || 0;
+  const base = q * r;
+  const gstAmt = base * g / 100;
+  document.getElementById('f-total').value = (base + gstAmt + oc).toFixed(2);
 };
 
 window.submitEntry = async function() {
@@ -413,10 +418,13 @@ window.submitEntry = async function() {
   const material = document.getElementById('f-material').value.trim();
   const supplier = document.getElementById('f-supplier').value.trim();
   const invoice = document.getElementById('f-invoice').value.trim();
+  const hsnCode = (document.getElementById('f-hsn') ? document.getElementById('f-hsn').value.trim() : '') || '';
   const supplierLot = document.getElementById('f-supplier-lot').value.trim();
-  const ourLot = document.getElementById('f-our-lot').value.trim();
+  const noOfBags = parseFloat((document.getElementById('f-bags') ? document.getElementById('f-bags').value : '') || 0) || null;
   const qty = parseFloat(document.getElementById('f-qty').value) || 0;
   const rate = parseFloat(document.getElementById('f-rate').value) || 0;
+  const gst = parseFloat((document.getElementById('f-gst') ? document.getElementById('f-gst').value : '') || 0) || null;
+  const otherCharges = parseFloat((document.getElementById('f-other-charges') ? document.getElementById('f-other-charges').value : '') || 0) || null;
   const total = parseFloat(document.getElementById('f-total').value) || (qty * rate);
   const quality = document.getElementById('f-quality').value;
 
@@ -430,7 +438,7 @@ window.submitEntry = async function() {
     if (idx !== -1) {
       entries[idx] = {
         ...entries[idx],
-        date, material, supplier, invoice, supplierLot, ourLot, qty, rate, total, quality
+        date, material, supplier, invoice, hsnCode, supplierLot, noOfBags, qty, rate, gst, otherCharges, total, quality
       };
       await saveEntryToCloud(entries[idx]);
       showToast("Consignment updated in Cloud Firestore!");
@@ -439,7 +447,7 @@ window.submitEntry = async function() {
   } else {
     const newEntry = {
       id: Date.now(),
-      date, material, supplier, invoice, supplierLot, ourLot, qty, rate, total, quality
+      date, material, supplier, invoice, hsnCode, supplierLot, noOfBags, qty, rate, gst, otherCharges, total, quality
     };
     entries.unshift(newEntry);
     await saveEntryToCloud(newEntry);
@@ -459,9 +467,13 @@ function resetForm() {
   document.getElementById('f-material').value = "";
   document.getElementById('f-supplier').value = "";
   document.getElementById('f-invoice').value = "";
+  if (document.getElementById('f-hsn')) document.getElementById('f-hsn').value = "";
   document.getElementById('f-supplier-lot').value = "";
+  if (document.getElementById('f-bags')) document.getElementById('f-bags').value = "";
   document.getElementById('f-qty').value = "";
   document.getElementById('f-rate').value = "";
+  if (document.getElementById('f-gst')) document.getElementById('f-gst').value = "";
+  if (document.getElementById('f-other-charges')) document.getElementById('f-other-charges').value = "";
   document.getElementById('f-total').value = "";
   document.getElementById('edit-note').style.display = 'none';
   document.getElementById('submit-btn').innerHTML = `
@@ -482,7 +494,7 @@ window.openEditModal = function(id) {
 
   const modalTitle = document.getElementById('edit-modal-title');
   if (modalTitle) {
-    modalTitle.textContent = `Edit Consignment — ${entry.ourLot || '#' + entry.id}`;
+    modalTitle.textContent = `Edit Consignment — #${entry.id}`;
   }
 
   const modalBody = document.getElementById('modal-body');
@@ -493,8 +505,8 @@ window.openEditModal = function(id) {
   modalBody.innerHTML = `
     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; padding:10px 14px; background:#F8FAFC; border:1px solid var(--border-color); border-radius:10px;">
       <div>
-        <div style="font-size:11px; text-transform:uppercase; font-weight:700; color:var(--text-secondary); letter-spacing:0.5px;">OFFICIAL INWARD LOT NUMBER</div>
-        <div style="font-family:'SF Mono',Consolas,monospace; font-size:15px; font-weight:800; color:var(--text-primary); margin-top:2px;">${escapeHtml(entry.ourLot || 'RM-LOT-PENDING')}</div>
+        <div style="font-size:11px; text-transform:uppercase; font-weight:700; color:var(--text-secondary); letter-spacing:0.5px;">CONSIGNMENT ID</div>
+        <div style="font-family:'SF Mono',Consolas,monospace; font-size:15px; font-weight:800; color:var(--text-primary); margin-top:2px;">#${escapeHtml(String(entry.id))}</div>
       </div>
       <div style="display:flex; align-items:center; gap:8px;">
         <span class="status-pill status-passed" style="font-size:11px;">Cloud Synced</span>
@@ -526,8 +538,13 @@ window.openEditModal = function(id) {
       </div>
 
       <div class="form-group">
-        <label class="form-label">Supplier Lot / Truck No.</label>
-        <input class="form-input" type="text" id="m-edit-supplier-lot" value="${escapeHtml(entry.supplierLot || '')}" placeholder="e.g. RJ-14-GA-8821 / BATCH-01" />
+        <label class="form-label">HSN Code</label>
+        <input class="form-input" type="text" id="m-edit-hsn" value="${escapeHtml(entry.hsnCode || '')}" placeholder="e.g., 0904" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Supplier Batch No.</label>
+        <input class="form-input" type="text" id="m-edit-supplier-lot" value="${escapeHtml(entry.supplierLot || '')}" placeholder="e.g. BATCH-01" />
       </div>
 
       <div class="form-group">
@@ -553,6 +570,30 @@ window.openEditModal = function(id) {
         <div class="input-unit-wrap">
           <input class="form-input" type="number" step="any" id="m-edit-rate" value="${entry.rate || ''}" oninput="calcEditModalTotal()" />
           <span class="input-unit-tag">₹ / KG</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">No. of Bags</label>
+        <div class="input-unit-wrap">
+          <input class="form-input" type="number" step="1" min="0" id="m-edit-bags" value="${entry.noOfBags || ''}" placeholder="e.g. 10" />
+          <span class="input-unit-tag">BAGS</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">GST (%)</label>
+        <div class="input-unit-wrap">
+          <input class="form-input" type="number" step="0.01" min="0" max="100" id="m-edit-gst" value="${entry.gst || ''}" placeholder="5" oninput="calcEditModalTotal()" />
+          <span class="input-unit-tag">%</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Other Charges (₹)</label>
+        <div class="input-unit-wrap">
+          <input class="form-input" type="number" step="0.01" min="0" id="m-edit-other-charges" value="${entry.otherCharges || ''}" placeholder="0.00" oninput="calcEditModalTotal()" />
+          <span class="input-unit-tag">₹</span>
         </div>
       </div>
     </div>
@@ -597,9 +638,13 @@ window.openEditModal = function(id) {
 window.calcEditModalTotal = function() {
   const q = parseFloat(document.getElementById('m-edit-qty')?.value) || 0;
   const r = parseFloat(document.getElementById('m-edit-rate')?.value) || 0;
+  const g = parseFloat(document.getElementById('m-edit-gst')?.value) || 0;
+  const oc = parseFloat(document.getElementById('m-edit-other-charges')?.value) || 0;
+  const base = q * r;
+  const gstAmt = base * g / 100;
   const totalInput = document.getElementById('m-edit-total');
   if (totalInput) {
-    totalInput.value = (q * r).toFixed(2);
+    totalInput.value = (base + gstAmt + oc).toFixed(2);
   }
 };
 
@@ -623,7 +668,9 @@ window.saveEditModal = async function() {
   const material = document.getElementById('m-edit-material')?.value.trim();
   const supplier = document.getElementById('m-edit-supplier')?.value.trim();
   const invoice = document.getElementById('m-edit-invoice')?.value.trim();
+  const hsnCode = document.getElementById('m-edit-hsn')?.value.trim() || "";
   const supplierLot = document.getElementById('m-edit-supplier-lot')?.value.trim() || "";
+  const noOfBags = parseFloat(document.getElementById('m-edit-bags')?.value) || null;
   const quality = document.getElementById('m-edit-quality')?.value || "Passed / Food Grade";
   const supplierAddress = document.getElementById('m-edit-supplier-address')?.value.trim() || "";
   const phoneNo = document.getElementById('m-edit-phone')?.value.trim() || "";
@@ -631,6 +678,8 @@ window.saveEditModal = async function() {
   const fssaiNo = document.getElementById('m-edit-fssai')?.value.trim() || "";
   const qty = parseFloat(document.getElementById('m-edit-qty')?.value) || 0;
   const rate = parseFloat(document.getElementById('m-edit-rate')?.value) || 0;
+  const gst = parseFloat(document.getElementById('m-edit-gst')?.value) || null;
+  const otherCharges = parseFloat(document.getElementById('m-edit-other-charges')?.value) || null;
   const total = parseFloat(document.getElementById('m-edit-total')?.value) || (qty * rate);
 
   if (!date || !material || !supplier || !invoice || qty <= 0 || rate <= 0) {
@@ -654,10 +703,14 @@ window.saveEditModal = async function() {
     gstin,
     fssaiNo,
     invoice,
+    hsnCode,
     supplierLot,
+    noOfBags,
     quality,
     qty,
     rate,
+    gst,
+    otherCharges,
     total
   };
 
@@ -681,7 +734,7 @@ window.saveEditModal = async function() {
   updateStats();
   renderSummary();
   updateSupplierList();
-  showToast(`Consignment ${entries[idx].ourLot || ''} updated successfully!`);
+  showToast(`Consignment #${entries[idx].id} updated successfully!`);
 };
 
 window.openEditInAddForm = function(id) {
