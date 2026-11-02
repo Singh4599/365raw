@@ -747,16 +747,19 @@ window.openEditInAddForm = function(id) {
   document.getElementById('f-material').value = entry.material || "";
   document.getElementById('f-supplier').value = entry.supplier || "";
   document.getElementById('f-invoice').value = entry.invoice || "";
+  if (document.getElementById('f-hsn')) document.getElementById('f-hsn').value = entry.hsnCode || "";
   const supLotEl = document.getElementById('f-supplier-lot') || document.getElementById('f-supplierLot');
   if (supLotEl) supLotEl.value = entry.supplierLot || "";
-  document.getElementById('f-our-lot').value = entry.ourLot || "";
+  if (document.getElementById('f-bags')) document.getElementById('f-bags').value = entry.noOfBags || "";
   document.getElementById('f-qty').value = entry.qty || "";
   document.getElementById('f-rate').value = entry.rate || "";
+  if (document.getElementById('f-gst')) document.getElementById('f-gst').value = entry.gst || "";
+  if (document.getElementById('f-other-charges')) document.getElementById('f-other-charges').value = entry.otherCharges || "";
   document.getElementById('f-total').value = entry.total || "";
   document.getElementById('f-quality').value = entry.quality || "Passed / Food Grade";
 
   document.getElementById('edit-note').style.display = 'flex';
-  document.getElementById('submit-btn').innerHTML = `Update Consignment (${entry.ourLot || '#' + entry.id})`;
+  document.getElementById('submit-btn').innerHTML = `Update Consignment (#${entry.id})`;
   switchView('add');
 };
 
@@ -961,12 +964,15 @@ window.renderScannedInvoiceUI = function() {
             <thead>
               <tr style="background:#F1F5F9; border-bottom:1px solid var(--border-color);">
                 <th style="padding:10px 8px; width:32px; text-align:center; font-weight:800; color:var(--text-secondary);">#</th>
-                <th style="padding:10px 8px; min-width:180px; font-weight:800; color:var(--text-secondary);">Raw Material Commodity *</th>
-                <th style="padding:10px 8px; width:130px; font-weight:800; color:var(--text-secondary);">Supplier Lot / Truck</th>
-                <th style="padding:10px 8px; width:140px; font-weight:800; color:var(--text-secondary);">Our Lot No. (Auto) *</th>
-                <th style="padding:10px 8px; width:95px; font-weight:800; color:var(--text-secondary);">Qty (KG) *</th>
-                <th style="padding:10px 8px; width:95px; font-weight:800; color:var(--text-secondary);">Rate/KG (₹)</th>
-                <th style="padding:10px 8px; width:110px; font-weight:800; color:var(--text-secondary);">Total (₹)</th>
+                <th style="padding:10px 8px; min-width:160px; font-weight:800; color:var(--text-secondary);">Raw Material *</th>
+                <th style="padding:10px 8px; width:100px; font-weight:800; color:var(--text-secondary);">HSN Code</th>
+                <th style="padding:10px 8px; width:120px; font-weight:800; color:var(--text-secondary);">Supplier Batch No.</th>
+                <th style="padding:10px 8px; width:80px; font-weight:800; color:var(--text-secondary);">Bags</th>
+                <th style="padding:10px 8px; width:85px; font-weight:800; color:var(--text-secondary);">Qty (KG) *</th>
+                <th style="padding:10px 8px; width:85px; font-weight:800; color:var(--text-secondary);">Rate/KG (₹)</th>
+                <th style="padding:10px 8px; width:65px; font-weight:800; color:var(--text-secondary);">GST %</th>
+                <th style="padding:10px 8px; width:85px; font-weight:800; color:var(--text-secondary);">Other Chg (₹)</th>
+                <th style="padding:10px 8px; width:100px; font-weight:800; color:var(--text-secondary);">Total (₹)</th>
                 <th style="padding:10px 8px; width:36px; text-align:center;"></th>
               </tr>
             </thead>
@@ -978,16 +984,25 @@ window.renderScannedInvoiceUI = function() {
                     <input class="form-input" style="padding:6px 8px; font-size:12px; font-weight:600;" id="scan-item-mat-${idx}" value="${escapeHtml(it.material)}" onchange="onScannedItemMaterialChange(${idx}, this.value)" />
                   </td>
                   <td style="padding:8px;">
-                    <input class="form-input" style="padding:6px 8px; font-size:12px;" id="scan-item-slot-${idx}" value="${escapeHtml(it.supplierLot || '')}" oninput="scannedCandidate.items[${idx}].supplierLot = this.value" />
+                    <input class="form-input" style="padding:6px 8px; font-size:12px; font-family:var(--font-mono);" id="scan-item-hsn-${idx}" value="${escapeHtml(it.hsnCode || '')}" oninput="scannedCandidate.items[${idx}].hsnCode = this.value" placeholder="nil" />
                   </td>
                   <td style="padding:8px;">
-                    <input class="form-input" style="padding:6px 8px; font-size:12px; font-family:var(--font-mono); font-weight:800; color:var(--brand-red); background:#FFF5F5; border-color:#FECACA;" id="scan-item-olot-${idx}" value="${escapeHtml(it.ourLot || '')}" oninput="scannedCandidate.items[${idx}].ourLot = this.value" />
+                    <input class="form-input" style="padding:6px 8px; font-size:12px;" id="scan-item-slot-${idx}" value="${escapeHtml(it.supplierLot || '')}" oninput="scannedCandidate.items[${idx}].supplierLot = this.value" placeholder="nil" />
+                  </td>
+                  <td style="padding:8px;">
+                    <input class="form-input" type="number" step="1" min="0" style="padding:6px 8px; font-size:12px; text-align:right;" id="scan-item-bags-${idx}" value="${it.noOfBags || ''}" oninput="scannedCandidate.items[${idx}].noOfBags = parseFloat(this.value) || null" placeholder="nil" />
                   </td>
                   <td style="padding:8px;">
                     <input class="form-input" type="number" step="any" style="padding:6px 8px; font-size:12px; font-weight:600; text-align:right;" id="scan-item-qty-${idx}" value="${it.qty}" oninput="onScannedItemCalc(${idx})" />
                   </td>
                   <td style="padding:8px;">
                     <input class="form-input" type="number" step="any" style="padding:6px 8px; font-size:12px; text-align:right;" id="scan-item-rate-${idx}" value="${it.rate}" oninput="onScannedItemCalc(${idx})" />
+                  </td>
+                  <td style="padding:8px;">
+                    <input class="form-input" type="number" step="0.01" min="0" max="100" style="padding:6px 8px; font-size:12px; text-align:right;" id="scan-item-gst-${idx}" value="${it.gst || ''}" oninput="onScannedItemCalc(${idx})" placeholder="nil" />
+                  </td>
+                  <td style="padding:8px;">
+                    <input class="form-input" type="number" step="0.01" min="0" style="padding:6px 8px; font-size:12px; text-align:right;" id="scan-item-oc-${idx}" value="${it.otherCharges || ''}" oninput="onScannedItemCalc(${idx})" placeholder="nil" />
                   </td>
                   <td style="padding:8px;">
                     <input class="form-input" type="number" step="any" style="padding:6px 8px; font-size:12px; font-weight:700; text-align:right; background:#F8FAFC;" id="scan-item-total-${idx}" value="${it.total}" oninput="scannedCandidate.items[${idx}].total = parseFloat(this.value) || 0; updateScanTotalsDisplay();" />
@@ -1000,12 +1015,14 @@ window.renderScannedInvoiceUI = function() {
             </tbody>
             <tfoot>
               <tr style="background:#F8FAFC; border-top:2px solid var(--border-color); font-weight:800;">
-                <td colspan="4" style="padding:10px 12px; text-align:right; color:var(--text-secondary); text-transform:uppercase; font-size:11px; letter-spacing:0.5px;">
+                <td colspan="5" style="padding:10px 12px; text-align:right; color:var(--text-secondary); text-transform:uppercase; font-size:11px; letter-spacing:0.5px;">
                   Grand Total (${scannedCandidate.items.length} items):
                 </td>
                 <td id="scan-total-qty" style="padding:10px 8px; text-align:right; font-family:var(--font-mono); color:var(--brand-red); font-size:12.5px;">
                   ${totalQty.toLocaleString('en-IN')} KG
                 </td>
+                <td></td>
+                <td></td>
                 <td></td>
                 <td id="scan-grand-total" style="padding:10px 8px; text-align:right; font-family:var(--font-mono); color:#059669; font-size:12.5px;">
                   ₹${totalVal.toLocaleString('en-IN')}
@@ -1034,9 +1051,15 @@ window.onScannedItemCalc = function(idx) {
   const item = scannedCandidate.items[idx];
   const q = parseFloat(document.getElementById(`scan-item-qty-${idx}`)?.value) || 0;
   const r = parseFloat(document.getElementById(`scan-item-rate-${idx}`)?.value) || 0;
+  const g = parseFloat(document.getElementById(`scan-item-gst-${idx}`)?.value) || 0;
+  const oc = parseFloat(document.getElementById(`scan-item-oc-${idx}`)?.value) || 0;
   item.qty = q;
   item.rate = r;
-  item.total = Math.round(q * r * 100) / 100;
+  item.gst = g || null;
+  item.otherCharges = oc || null;
+  const base = q * r;
+  const gstAmt = base * g / 100;
+  item.total = Math.round((base + gstAmt + oc) * 100) / 100;
   const totEl = document.getElementById(`scan-item-total-${idx}`);
   if (totEl) totEl.value = item.total;
   updateScanTotalsDisplay();
@@ -1056,41 +1079,28 @@ window.onScannedItemMaterialChange = function(idx, newMat) {
   if (!scannedCandidate || !scannedCandidate.items || !scannedCandidate.items[idx]) return;
   const item = scannedCandidate.items[idx];
   item.material = newMat;
-  const usedLots = new Set(entries.map(e => (e.ourLot || '').trim()).filter(Boolean));
-  scannedCandidate.items.forEach((it, i) => {
-    if (i !== idx && it.ourLot) usedLots.add(it.ourLot);
-  });
-  item.ourLot = generateOurLotNumber(newMat, scannedCandidate.date, usedLots);
-  const lotEl = document.getElementById(`scan-item-olot-${idx}`);
-  if (lotEl) lotEl.value = item.ourLot;
 };
 
 window.updateScanDate = function(newDate) {
   if (!scannedCandidate) return;
   scannedCandidate.date = newDate;
-  const usedLots = new Set(entries.map(e => (e.ourLot || '').trim()).filter(Boolean));
-  scannedCandidate.items.forEach((item, idx) => {
-    item.ourLot = generateOurLotNumber(item.material, newDate, usedLots);
-    const el = document.getElementById(`scan-item-olot-${idx}`);
-    if (el) el.value = item.ourLot;
-  });
 };
 
 window.addScannedItemRow = function() {
   if (!scannedCandidate) return;
   const nextId = scannedCandidate.items.length + 1;
-  const usedLots = new Set(entries.map(e => (e.ourLot || '').trim()).filter(Boolean));
-  scannedCandidate.items.forEach(it => { if (it.ourLot) usedLots.add(it.ourLot); });
   const defaultMat = "Chilli Whole";
-  const ourLot = generateOurLotNumber(defaultMat, scannedCandidate.date, usedLots);
 
   scannedCandidate.items.push({
     id: nextId,
     material: defaultMat,
-    supplierLot: `LOT-${String(nextId).padStart(2, '0')}`,
-    ourLot: ourLot,
+    hsnCode: null,
+    supplierLot: null,
+    noOfBags: null,
     qty: 500,
     rate: 200,
+    gst: null,
+    otherCharges: null,
     total: 100000,
     quality: "Passed / Food Grade"
   });
@@ -1139,23 +1149,24 @@ window.confirmScan = async function() {
 
   scannedCandidate.items.forEach((it, idx) => {
     const matInput = document.getElementById(`scan-item-mat-${idx}`);
+    const hsnInput = document.getElementById(`scan-item-hsn-${idx}`);
     const slotInput = document.getElementById(`scan-item-slot-${idx}`);
-    const olotInput = document.getElementById(`scan-item-olot-${idx}`);
+    const bagsInput = document.getElementById(`scan-item-bags-${idx}`);
     const qtyInput = document.getElementById(`scan-item-qty-${idx}`);
     const rateInput = document.getElementById(`scan-item-rate-${idx}`);
+    const gstInput = document.getElementById(`scan-item-gst-${idx}`);
+    const ocInput = document.getElementById(`scan-item-oc-${idx}`);
     const totInput = document.getElementById(`scan-item-total-${idx}`);
 
     const material = matInput ? matInput.value.trim() : it.material;
+    const hsnCode = hsnInput ? hsnInput.value.trim() : (it.hsnCode || '');
     const supplierLot = slotInput ? slotInput.value.trim() : it.supplierLot;
-    let ourLot = olotInput ? olotInput.value.trim() : it.ourLot;
-    if (!ourLot) {
-      ourLot = generateOurLotNumber(material, commonDate, usedLots);
-    } else {
-      usedLots.add(ourLot);
-    }
+    const noOfBags = bagsInput ? (parseFloat(bagsInput.value) || null) : it.noOfBags;
 
     const qty = qtyInput ? (parseFloat(qtyInput.value) || 0) : it.qty;
     const rate = rateInput ? (parseFloat(rateInput.value) || 0) : it.rate;
+    const gst = gstInput ? (parseFloat(gstInput.value) || null) : it.gst;
+    const otherCharges = ocInput ? (parseFloat(ocInput.value) || null) : it.otherCharges;
     const total = totInput ? (parseFloat(totInput.value) || (qty * rate)) : it.total;
 
     newEntries.push({
@@ -1168,10 +1179,13 @@ window.confirmScan = async function() {
       gstin: commonGstin,
       fssaiNo: commonFssaiNo,
       invoice: commonInvoice,
-      supplierLot: supplierLot || "—",
-      ourLot: ourLot,
+      hsnCode: hsnCode || null,
+      supplierLot: supplierLot || null,
+      noOfBags: noOfBags,
       qty: qty,
       rate: rate,
+      gst: gst,
+      otherCharges: otherCharges,
       total: total,
       quality: "Passed / Food Grade"
     });
@@ -1286,10 +1300,13 @@ window.exportReport = function(type) {
     "GSTIN No.",
     "FSSAI License No.",
     "Invoice No.",
-    "Supplier Lot / Vehicle",
-    "Our Lot No.",
+    "HSN Code",
+    "Supplier Batch No.",
+    "No. of Bags",
     "Quantity (KG)",
     "Rate per KG (\u20b9)",
+    "GST (%)",
+    "Other Charges (\u20b9)",
     "Total Value (\u20b9)",
     "Quality Check / Status"
   ]);
@@ -1314,17 +1331,20 @@ window.exportReport = function(type) {
       e.gstin || "",
       e.fssaiNo || "",
       e.invoice,
-      e.supplierLot || "\u2014",
-      e.ourLot,
+      e.hsnCode || "",
+      e.supplierLot || "—",
+      e.noOfBags || "",
       q,
       r,
+      e.gst || "",
+      e.otherCharges || "",
       t,
       e.quality || "Passed / Food Grade"
     ]);
   });
 
   sheetRows.push([]);
-  sheetRows.push(["TOTAL:", "", "", "", "", "", "", "", "", "", "", sumQty, "", sumVal, ""]);
+  sheetRows.push(["TOTAL:", "", "", "", "", "", "", "", "", "", "", "", sumQty, "", "", "", sumVal, ""]);
   sheetRows.push([]);
   sheetRows.push(["Inspected & Verified By: Mukesh Vora (Quality Assurance)"]);
 
@@ -1340,10 +1360,13 @@ window.exportReport = function(type) {
     { wch: 22 }, // GSTIN
     { wch: 22 }, // FSSAI
     { wch: 16 }, // Invoice
-    { wch: 22 }, // Supplier Lot
-    { wch: 15 }, // Our Lot
+    { wch: 14 }, // HSN Code
+    { wch: 22 }, // Supplier Batch No
+    { wch: 12 }, // No. of Bags
     { wch: 14 }, // Qty
     { wch: 14 }, // Rate
+    { wch: 10 }, // GST
+    { wch: 16 }, // Other Charges
     { wch: 16 }, // Total
     { wch: 22 }  // Quality
   ];
