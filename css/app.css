@@ -2121,25 +2121,8 @@ select.form-input {
     line-height: 1.3 !important;
   }
 
-  /* Column width hints for fixed layout — tune to fit landscape A4 */
-  th:nth-child(1), td:nth-child(1)  { width: 3% !important; }   /* Sr No */
-  th:nth-child(2), td:nth-child(2)  { width: 8% !important; }   /* Purchase Date */
-  th:nth-child(3), td:nth-child(3)  { width: 12% !important; }  /* Raw Material */
-  th:nth-child(4), td:nth-child(4)  { width: 10% !important; }  /* Supplier Name */
-  th:nth-child(5), td:nth-child(5)  { width: 10% !important; }  /* Supplier Address */
-  th:nth-child(6), td:nth-child(6)  { width: 7% !important; }   /* Phone No */
-  th:nth-child(7), td:nth-child(7)  { width: 5% !important; }   /* GSTIN */
-  th:nth-child(8), td:nth-child(8)  { width: 8% !important; }   /* FSSAI License */
-  th:nth-child(9), td:nth-child(9)  { width: 5% !important; }   /* Invoice No */
-  th:nth-child(10), td:nth-child(10) { width: 4% !important; }  /* HSN Code */
-  th:nth-child(11), td:nth-child(11) { width: 5% !important; }  /* Supplier Batch */
-  th:nth-child(12), td:nth-child(12) { width: 3% !important; }  /* Bags */
-  th:nth-child(13), td:nth-child(13) { width: 4% !important; }  /* Qty */
-  th:nth-child(14), td:nth-child(14) { width: 4% !important; }  /* Rate */
-  th:nth-child(15), td:nth-child(15) { width: 3% !important; }  /* GST */
-  th:nth-child(16), td:nth-child(16) { width: 4% !important; }  /* Other Chg */
-  th:nth-child(17), td:nth-child(17) { width: 5% !important; }  /* Total */
-  th:nth-child(18), td:nth-child(18) { width: 6% !important; }  /* Quality Status */
+  /* Override inline widths on th/td so fixed layout works */
+  table th, table td { width: auto !important; }
 
   /* Keep colored badge backgrounds */
   .status-pill {
@@ -2150,6 +2133,30 @@ select.form-input {
 
   /* Hide Actions column (last th/td in each row) */
   th:last-child, td:last-child { display: none !important; }
+
+  /* Hide mobile-only UI in print */
+  .mobile-table-hint, .swipe-hint, [class*="mobile-hint"] { display: none !important; }
+
+  /* Override inline widths on th/td so fixed layout works */
+  table th, table td { width: auto !important; }
+  th:nth-child(1), td:nth-child(1)  { width: 3% !important; }
+  th:nth-child(2), td:nth-child(2)  { width: 8% !important; }
+  th:nth-child(3), td:nth-child(3)  { width: 12% !important; }
+  th:nth-child(4), td:nth-child(4)  { width: 10% !important; }
+  th:nth-child(5), td:nth-child(5)  { width: 10% !important; }
+  th:nth-child(6), td:nth-child(6)  { width: 7% !important; }
+  th:nth-child(7), td:nth-child(7)  { width: 5% !important; }
+  th:nth-child(8), td:nth-child(8)  { width: 7% !important; }
+  th:nth-child(9), td:nth-child(9)  { width: 5% !important; }
+  th:nth-child(10), td:nth-child(10) { width: 4% !important; }
+  th:nth-child(11), td:nth-child(11) { width: 5% !important; }
+  th:nth-child(12), td:nth-child(12) { width: 3% !important; }
+  th:nth-child(13), td:nth-child(13) { width: 4% !important; }
+  th:nth-child(14), td:nth-child(14) { width: 4% !important; }
+  th:nth-child(15), td:nth-child(15) { width: 3% !important; }
+  th:nth-child(16), td:nth-child(16) { width: 4% !important; }
+  th:nth-child(17), td:nth-child(17) { width: 5% !important; }
+  th:nth-child(18), td:nth-child(18) { width: 6% !important; }
 
   /* Print title above table */
   #view-register::before {
