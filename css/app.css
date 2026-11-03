@@ -1238,6 +1238,12 @@ select.form-input {
   box-shadow: 0 4px 24px rgba(17, 27, 50, 0.05);
   padding: 38px 36px;
   text-align: center;
+  transition: max-width 0.3s ease;
+}
+/* Expand scan card after results are shown */
+.scan-card.scan-card--wide {
+  max-width: min(96vw, 1180px);
+  text-align: left;
 }
 .ai-badge-pill {
   display: inline-flex;

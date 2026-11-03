@@ -866,6 +866,10 @@ window.renderScannedInvoiceUI = function() {
   const fieldsEl = document.getElementById('scanned-fields');
   if (!fieldsEl) return;
 
+  // Expand scan card width when results are shown
+  const scanCard = document.querySelector('.scan-card');
+  if (scanCard) scanCard.classList.add('scan-card--wide');
+
   const usedLots = new Set(entries.map(e => (e.ourLot || '').trim()).filter(Boolean));
 
   if (!Array.isArray(scannedCandidate.items) || scannedCandidate.items.length === 0) {
@@ -960,20 +964,33 @@ window.renderScannedInvoiceUI = function() {
         </div>
 
         <div style="overflow-x:auto; border:1px solid var(--border-color); border-radius:var(--radius-md); background:#FFFFFF; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
-          <table style="width:100%; border-collapse:collapse; font-size:12px; text-align:left;">
+          <table style="width:100%; min-width:960px; border-collapse:collapse; font-size:12px; text-align:left; table-layout:fixed;">
+            <colgroup>
+              <col style="width:36px" />
+              <col style="width:220px" />
+              <col style="width:100px" />
+              <col style="width:130px" />
+              <col style="width:72px" />
+              <col style="width:88px" />
+              <col style="width:95px" />
+              <col style="width:70px" />
+              <col style="width:100px" />
+              <col style="width:110px" />
+              <col style="width:40px" />
+            </colgroup>
             <thead>
               <tr style="background:#F1F5F9; border-bottom:1px solid var(--border-color);">
-                <th style="padding:10px 8px; width:32px; text-align:center; font-weight:800; color:var(--text-secondary);">#</th>
-                <th style="padding:10px 8px; min-width:180px; font-weight:800; color:var(--text-secondary);">Raw Material *</th>
-                <th style="padding:10px 8px; width:110px; font-weight:800; color:var(--text-secondary);">HSN Code</th>
-                <th style="padding:10px 8px; width:130px; font-weight:800; color:var(--text-secondary);">Supplier Batch No.</th>
-                <th style="padding:10px 8px; width:80px; font-weight:800; color:var(--text-secondary);">Bags</th>
-                <th style="padding:10px 8px; width:90px; font-weight:800; color:var(--text-secondary);">Qty (KG) *</th>
-                <th style="padding:10px 8px; width:95px; font-weight:800; color:var(--text-secondary);">Rate/KG (₹)</th>
-                <th style="padding:10px 8px; width:75px; font-weight:800; color:var(--text-secondary);">GST %</th>
-                <th style="padding:10px 8px; width:100px; font-weight:800; color:var(--text-secondary);">Other Chg (₹)</th>
-                <th style="padding:10px 8px; width:110px; font-weight:800; color:var(--text-secondary);">Total (₹)</th>
-                <th style="padding:10px 8px; width:36px; text-align:center;"></th>
+                <th style="padding:10px 8px; text-align:center; font-weight:800; color:var(--text-secondary);">#</th>
+                <th style="padding:10px 8px; font-weight:800; color:var(--text-secondary);">Raw Material *</th>
+                <th style="padding:10px 8px; font-weight:800; color:var(--text-secondary);">HSN Code</th>
+                <th style="padding:10px 8px; font-weight:800; color:var(--text-secondary);">Supplier Batch No.</th>
+                <th style="padding:10px 8px; font-weight:800; color:var(--text-secondary);">Bags</th>
+                <th style="padding:10px 8px; font-weight:800; color:var(--text-secondary);">Qty (KG) *</th>
+                <th style="padding:10px 8px; font-weight:800; color:var(--text-secondary);">Rate/KG (₹)</th>
+                <th style="padding:10px 8px; font-weight:800; color:var(--text-secondary);">GST %</th>
+                <th style="padding:10px 8px; font-weight:800; color:var(--text-secondary);">Other Chg (₹)</th>
+                <th style="padding:10px 8px; font-weight:800; color:var(--text-secondary);">Total (₹)</th>
+                <th style="padding:10px 8px; text-align:center;"></th>
               </tr>
             </thead>
             <tbody id="scan-items-tbody">
@@ -981,31 +998,31 @@ window.renderScannedInvoiceUI = function() {
                 <tr style="border-bottom:1px solid #F1F5F9;">
                   <td style="padding:8px; text-align:center; font-weight:700; color:var(--text-secondary);">${idx + 1}</td>
                   <td style="padding:8px;">
-                    <input class="form-input" style="padding:8px 10px; font-size:13px; font-weight:600; min-width:170px;" id="scan-item-mat-${idx}" value="${escapeHtml(it.material)}" onchange="onScannedItemMaterialChange(${idx}, this.value)" />
+                    <input class="form-input" style="width:100%; padding:8px 10px; font-size:13px; font-weight:600;" id="scan-item-mat-${idx}" value="${escapeHtml(it.material)}" onchange="onScannedItemMaterialChange(${idx}, this.value)" />
                   </td>
                   <td style="padding:8px;">
-                    <input class="form-input" style="padding:8px 10px; font-size:13px; font-family:var(--font-mono);" id="scan-item-hsn-${idx}" value="${escapeHtml(it.hsnCode || '')}" oninput="scannedCandidate.items[${idx}].hsnCode = this.value" placeholder="nil" />
+                    <input class="form-input" style="width:100%; padding:8px 10px; font-size:13px; font-family:var(--font-mono);" id="scan-item-hsn-${idx}" value="${escapeHtml(it.hsnCode || '')}" oninput="scannedCandidate.items[${idx}].hsnCode = this.value" placeholder="nil" />
                   </td>
                   <td style="padding:8px;">
-                    <input class="form-input" style="padding:8px 10px; font-size:13px;" id="scan-item-slot-${idx}" value="${escapeHtml(it.supplierLot || '')}" oninput="scannedCandidate.items[${idx}].supplierLot = this.value" placeholder="nil" />
+                    <input class="form-input" style="width:100%; padding:8px 10px; font-size:13px;" id="scan-item-slot-${idx}" value="${escapeHtml(it.supplierLot || '')}" oninput="scannedCandidate.items[${idx}].supplierLot = this.value" placeholder="nil" />
                   </td>
                   <td style="padding:8px;">
-                    <input class="form-input" type="number" step="1" min="0" style="padding:8px 10px; font-size:13px; text-align:right;" id="scan-item-bags-${idx}" value="${it.noOfBags || ''}" oninput="scannedCandidate.items[${idx}].noOfBags = parseFloat(this.value) || null" placeholder="nil" />
+                    <input class="form-input" type="number" step="1" min="0" style="width:100%; padding:8px 10px; font-size:13px; text-align:right;" id="scan-item-bags-${idx}" value="${it.noOfBags || ''}" oninput="scannedCandidate.items[${idx}].noOfBags = parseFloat(this.value) || null" placeholder="nil" />
                   </td>
                   <td style="padding:8px;">
-                    <input class="form-input" type="number" step="any" style="padding:8px 10px; font-size:13px; font-weight:600; text-align:right;" id="scan-item-qty-${idx}" value="${it.qty}" oninput="onScannedItemCalc(${idx})" />
+                    <input class="form-input" type="number" step="any" style="width:100%; padding:8px 10px; font-size:13px; font-weight:600; text-align:right;" id="scan-item-qty-${idx}" value="${it.qty}" oninput="onScannedItemCalc(${idx})" />
                   </td>
                   <td style="padding:8px;">
-                    <input class="form-input" type="number" step="any" style="padding:8px 10px; font-size:13px; text-align:right;" id="scan-item-rate-${idx}" value="${it.rate}" oninput="onScannedItemCalc(${idx})" />
+                    <input class="form-input" type="number" step="any" style="width:100%; padding:8px 10px; font-size:13px; text-align:right;" id="scan-item-rate-${idx}" value="${it.rate}" oninput="onScannedItemCalc(${idx})" />
                   </td>
                   <td style="padding:8px;">
-                    <input class="form-input" type="number" step="0.01" min="0" max="100" style="padding:8px 10px; font-size:13px; text-align:right;" id="scan-item-gst-${idx}" value="${it.gst || ''}" oninput="onScannedItemCalc(${idx})" placeholder="nil" />
+                    <input class="form-input" type="number" step="0.01" min="0" max="100" style="width:100%; padding:8px 10px; font-size:13px; text-align:right;" id="scan-item-gst-${idx}" value="${it.gst || ''}" oninput="onScannedItemCalc(${idx})" placeholder="nil" />
                   </td>
                   <td style="padding:8px;">
-                    <input class="form-input" type="number" step="0.01" min="0" style="padding:8px 10px; font-size:13px; text-align:right;" id="scan-item-oc-${idx}" value="${it.otherCharges || ''}" oninput="onScannedItemCalc(${idx})" placeholder="nil" />
+                    <input class="form-input" type="number" step="0.01" min="0" style="width:100%; padding:8px 10px; font-size:13px; text-align:right;" id="scan-item-oc-${idx}" value="${it.otherCharges || ''}" oninput="onScannedItemCalc(${idx})" placeholder="nil" />
                   </td>
                   <td style="padding:8px;">
-                    <input class="form-input" type="number" step="any" style="padding:8px 10px; font-size:13px; font-weight:700; text-align:right; background:#F8FAFC;" id="scan-item-total-${idx}" value="${it.total}" oninput="scannedCandidate.items[${idx}].total = parseFloat(this.value) || 0; updateScanTotalsDisplay();" />
+                    <input class="form-input" type="number" step="any" style="width:100%; padding:8px 10px; font-size:13px; font-weight:700; text-align:right; background:#F8FAFC;" id="scan-item-total-${idx}" value="${it.total}" oninput="scannedCandidate.items[${idx}].total = parseFloat(this.value) || 0; updateScanTotalsDisplay();" />
                   </td>
                   <td style="padding:8px; text-align:center;">
                     <button type="button" style="background:none; border:none; cursor:pointer; color:#EF4444; font-size:16px; font-weight:bold; padding:2px 6px;" title="Remove line item" onclick="removeScannedItemRow(${idx})">×</button>
@@ -1131,6 +1148,9 @@ window.clearScan = function() {
   document.getElementById('scanned-result').style.display = 'none';
   document.getElementById('scan-preview').style.display = 'none';
   document.getElementById('scan-file-input').value = '';
+  // Shrink card back to normal upload width
+  const scanCard = document.querySelector('.scan-card');
+  if (scanCard) scanCard.classList.remove('scan-card--wide');
 };
 
 window.confirmScan = async function() {
