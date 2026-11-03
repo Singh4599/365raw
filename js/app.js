@@ -41,6 +41,8 @@ let deletingId = null;
 let currentView = 'register';
 let scannedCandidate = null;
 let periodFilter = 'all'; // 'all' | 'daily' | 'weekly' | 'monthly'
+let invoiceQueue = [];   // Array of File objects pending scan
+let queueIndex = 0;      // Current position in queue
 
 function getEffectiveToday() {
   const d = new Date();
@@ -801,21 +803,36 @@ window.confirmDelete = async function() {
 // ──────────────────────────────────────────────────────────────────────────────
 // REAL GEMINI VISION AI OCR
 // ──────────────────────────────────────────────────────────────────────────────
-window.handleFileUpload = async function(input) {
-  const file = input.files?.[0];
-  if (!file) return;
+// ── Queue banner helpers ──────────────────────────────────────────────────
+function updateQueueBanner() {
+  const banner = document.getElementById('queue-banner');
+  const label  = document.getElementById('queue-label');
+  const fname  = document.getElementById('queue-filename');
+  const dots   = document.getElementById('queue-dots');
+  if (!banner) return;
+  if (invoiceQueue.length <= 1) { banner.style.display = 'none'; return; }
+  banner.style.display = 'flex';
+  label.textContent = `Invoice ${queueIndex + 1} of ${invoiceQueue.length}`;
+  fname.textContent  = invoiceQueue[queueIndex]?.name || '';
+  // progress dots
+  dots.innerHTML = invoiceQueue.map((_, i) =>
+    `<span style="width:8px;height:8px;border-radius:50%;background:${i < queueIndex ? '#22C55E' : i === queueIndex ? '#3B82F6' : '#CBD5E1'};display:inline-block;"></span>`
+  ).join('');
+}
 
+// ── Process a single file from the queue ────────────────────────────────
+async function processQueueItem(file) {
   const progressWrap = document.getElementById('scan-progress');
   const progressFill = document.getElementById('progress-fill');
   const progressText = document.getElementById('progress-text');
-  const resultBox = document.getElementById('scanned-result');
-  const previewBox = document.getElementById('scan-preview');
-  const previewImg = document.getElementById('scan-preview-img');
+  const resultBox    = document.getElementById('scanned-result');
+  const previewBox   = document.getElementById('scan-preview');
+  const previewImg   = document.getElementById('scan-preview-img');
 
+  scannedCandidate = null;
   progressWrap.style.display = 'block';
-  resultBox.style.display = 'none';
+  resultBox.style.display    = 'none';
 
-  // Preview thumbnail only for actual image files (NEVER show decorative spice artwork)
   if (file.type && file.type.startsWith('image/')) {
     previewBox.style.display = 'flex';
     previewImg.style.display = 'block';
@@ -825,40 +842,49 @@ window.handleFileUpload = async function(input) {
     previewImg.src = '';
   }
 
+  updateQueueBanner();
+
   try {
     const parsed = await scanRawMaterialInvoice(file, (pct, msg) => {
       progressFill.style.width = `${pct}%`;
       progressText.textContent = msg;
     });
-
     scannedCandidate = parsed;
     progressWrap.style.display = 'none';
-    previewBox.style.display = 'none'; // Cleanly hide preview so result form is clear
-    resultBox.style.display = 'block';
-
+    previewBox.style.display   = 'none';
+    resultBox.style.display    = 'block';
     renderScannedInvoiceUI();
-    showToast(`Gemini Vision AI: Invoice scanned successfully (${scannedCandidate.items?.length || 1} line item(s))!`);
+    const remaining = invoiceQueue.length - queueIndex - 1;
+    const suffix = remaining > 0 ? ` — ${remaining} more in queue` : '';
+    showToast(`Invoice scanned (${scannedCandidate.items?.length || 1} item(s))${suffix}!`);
   } catch (err) {
-    console.error("[OCR Invoice] Graceful fallback activated:", err);
+    console.error('[OCR Invoice] Graceful fallback:', err);
     progressWrap.style.display = 'none';
-    previewBox.style.display = 'none';
-    resultBox.style.display = 'block';
-
+    previewBox.style.display   = 'none';
+    resultBox.style.display    = 'block';
     scannedCandidate = {
       date: new Date().toISOString().split('T')[0],
       supplier: "K MAITRI FOODS & COLD STORAGE PVT. LTD.",
       invoice: `K1520-2026`,
       items: [
-        { id: 1, material: "Dry Chilli Powder", supplierLot: "3704/43", qty: 30, rate: 48, total: 1440, quality: "Passed / Food Grade" },
-        { id: 2, material: "White Chinese Masala", supplierLot: "3705/12", qty: 9, rate: 48, total: 432, quality: "Passed / Food Grade" },
-        { id: 3, material: "Dry Chilli Powder", supplierLot: "3706/66", qty: 43, rate: 48, total: 2064, quality: "Passed / Food Grade" },
-        { id: 4, material: "Coriander Powder", supplierLot: "5708/10", qty: 10, rate: 48, total: 480, quality: "Passed / Food Grade" }
+        { id: 1, material: "Dry Chilli Powder",    supplierLot: "3704/43", qty: 30, rate: 48, total: 1440, quality: "Passed / Food Grade" },
+        { id: 2, material: "White Chinese Masala",  supplierLot: "3705/12", qty: 9,  rate: 48, total: 432,  quality: "Passed / Food Grade" },
+        { id: 3, material: "Dry Chilli Powder",     supplierLot: "3706/66", qty: 43, rate: 48, total: 2064, quality: "Passed / Food Grade" },
+        { id: 4, material: "Coriander Powder",      supplierLot: "5708/10", qty: 10, rate: 48, total: 480,  quality: "Passed / Food Grade" }
       ]
     };
-
     renderScannedInvoiceUI();
     showToast("Please review and verify invoice particulars.");
   }
+}
+
+window.handleFileUpload = async function(input) {
+  const files = Array.from(input.files || []);
+  if (!files.length) return;
+  invoiceQueue = files;
+  queueIndex   = 0;
+  input.value  = '';   // reset so same files can be re-selected if needed
+  await processQueueItem(invoiceQueue[queueIndex]);
 };
 
 window.renderScannedInvoiceUI = function() {
@@ -1138,19 +1164,31 @@ window.handleDrop = function(e) {
   e.preventDefault();
   const dt = e.dataTransfer;
   if (dt.files && dt.files.length > 0) {
-    document.getElementById('scan-file-input').files = dt.files;
-    handleFileUpload(document.getElementById('scan-file-input'));
+    invoiceQueue = Array.from(dt.files);
+    queueIndex   = 0;
+    processQueueItem(invoiceQueue[0]);
   }
 };
 
 window.clearScan = function() {
   scannedCandidate = null;
   document.getElementById('scanned-result').style.display = 'none';
-  document.getElementById('scan-preview').style.display = 'none';
-  document.getElementById('scan-file-input').value = '';
-  // Shrink card back to normal upload width
+  document.getElementById('scan-preview').style.display   = 'none';
+  document.getElementById('scan-file-input').value        = '';
   const scanCard = document.querySelector('.scan-card');
   if (scanCard) scanCard.classList.remove('scan-card--wide');
+
+  // If more items in queue, advance to next
+  if (invoiceQueue.length > 0 && queueIndex < invoiceQueue.length - 1) {
+    queueIndex++;
+    processQueueItem(invoiceQueue[queueIndex]);
+  } else {
+    // Queue done — reset
+    invoiceQueue = [];
+    queueIndex   = 0;
+    const banner = document.getElementById('queue-banner');
+    if (banner) banner.style.display = 'none';
+  }
 };
 
 window.confirmScan = async function() {
@@ -1236,8 +1274,17 @@ window.confirmScan = async function() {
   updateStats();
   renderSummary();
   updateNextLotPreview();
-  switchView('register');
-  showToast(`Added ${newEntries.length} consignment${newEntries.length > 1 ? 's' : ''} from invoice ${commonInvoice} to register!`);
+
+  // Check if more invoices in queue
+  const moreInQueue = invoiceQueue.length > 0 && queueIndex < invoiceQueue.length - 1;
+  if (moreInQueue) {
+    showToast(`✅ Saved ${newEntries.length} item(s) from invoice ${commonInvoice}. Loading next invoice…`);
+    clearScan(); // clearScan will auto-advance queue
+  } else {
+    clearScan();
+    switchView('register');
+    showToast(`Added ${newEntries.length} consignment${newEntries.length > 1 ? 's' : ''} from invoice ${commonInvoice} to register!`);
+  }
 };
 
 // ──────────────────────────────────────────────────────────────────────────────

@@ -437,20 +437,32 @@
     <div class="view-panel" id="view-scan" style="display:none;">
       <div class="scan-card">
         <h2 class="scan-title">Invoice Scanner</h2>
-        <p class="scan-sub">Upload or capture an invoice image to automatically extract and verify inward details.</p>
+        <p class="scan-sub">Upload one or multiple invoice images to auto-extract and verify inward details — processed one by one.</p>
+
+        <!-- Queue Progress Banner (hidden until >1 file) -->
+        <div id="queue-banner" style="display:none; background:#EFF6FF; border:1px solid #BFDBFE; border-radius:10px; padding:10px 16px; margin-bottom:16px; display:none; align-items:center; justify-content:space-between; gap:12px; font-size:13px; font-weight:600; color:#1E40AF;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+            <span id="queue-label">Invoice 1 of 3</span>
+          </div>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <span id="queue-filename" style="font-weight:400; color:#3B82F6; max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></span>
+            <span id="queue-dots" style="display:flex; gap:4px;"></span>
+          </div>
+        </div>
 
         <div class="upload-zone" id="upload-zone" onclick="document.getElementById('scan-file-input').click()" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handleDrop(event)">
           <div class="upload-icon-circle">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="32" height="32"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
           </div>
-          <div class="upload-text">Click to upload bill image or drop file here</div>
-          <div class="upload-sub">Supports JPG, PNG, WebP or PDF files</div>
+          <div class="upload-text">Click to upload invoices or drop files here</div>
+          <div class="upload-sub">Select multiple files — JPG, PNG, WebP or PDF</div>
           <button type="button" class="action-btn upload-browse-btn" onclick="event.stopPropagation();document.getElementById('scan-file-input').click()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            Choose Document
+            Choose Documents
           </button>
         </div>
-        <input type="file" id="scan-file-input" accept="image/*,.pdf" style="display:none" onchange="handleFileUpload(this)" />
+        <input type="file" id="scan-file-input" accept="image/*,.pdf" multiple style="display:none" onchange="handleFileUpload(this)" />
 
         <div class="scan-preview" id="scan-preview" style="display:none;">
           <img id="scan-preview-img" src="" alt="Invoice preview" />
