@@ -137,6 +137,17 @@ CRITICAL EXTRACTION RULES:
 5. Return ONLY a single valid JSON object. No markdown, no extra text.
 6. For supplier_address, phone_no, gstin, fssai_no — use empty string if not visible on invoice.
 7. For hsn_code, supplier_batch_no, no_of_bags, gst_percent, other_charges — use null if not found.
+8. IMPORTANT — DO NOT treat charges as separate line items. The following are NOT raw materials and must NOT appear in "items" array:
+   - Packaging charges / packing charges / P&F charges
+   - Freight charges / transportation / transport cost / logistics
+   - Loading / unloading charges
+   - Handling charges / labour charges
+   - Delivery charges / courier charges
+   - Commission / brokerage
+   - Cartage / godown charges
+   - Any row that has no quantity_kg (i.e. it's a surcharge row)
+   Instead, SUM all such charges and put the total in the "other_charges" field of the relevant line item (usually the last/only commodity item), or add to the first item if only one commodity.
+9. Only rows with actual spice/commodity/raw material + quantity in KG should be in "items".
 `;
 
   let attempts = 0;
