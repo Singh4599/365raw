@@ -2134,8 +2134,9 @@ select.form-input {
   /* Hide Actions column (last th/td in each row) */
   th:last-child, td:last-child { display: none !important; }
 
-  /* Hide mobile-only UI in print */
+  /* Hide mobile-only UI and footer in print */
   .mobile-table-hint, .swipe-hint, [class*="mobile-hint"] { display: none !important; }
+  tfoot, #rm-tfoot { display: none !important; }
 
   /* Override inline widths on th/td so fixed layout works */
   table th, table td { width: auto !important; }
