@@ -123,7 +123,7 @@ RETURN ONLY A VALID JSON OBJECT WITH THIS EXACT STRUCTURE:
       "rate_per_kg": 48.0,
       "gst_percent": "GST percentage (e.g. 5, 12, 18). Null if not found.",
       "other_charges": "Any other charges like freight, handling in ₹. Null if not found.",
-      "total_value": 1440.0,
+      "total_value": "Final amount for this line item INCLUDING GST + other charges (after-tax). If invoice shows taxable value and tax separately, add them together. Return null if unclear.",
       "quality_status": "Passed / Food Grade"
     }
   ]
@@ -148,6 +148,7 @@ CRITICAL EXTRACTION RULES:
    - Any row that has no quantity_kg (i.e. it's a surcharge row)
    Instead, SUM all such charges and put the total in the "other_charges" field of the relevant line item (usually the last/only commodity item), or add to the first item if only one commodity.
 9. Only rows with actual spice/commodity/raw material + quantity in KG should be in "items".
+10. TOTAL VALUE RULE — total_value must be the FINAL after-tax amount (taxable value + CGST + SGST + IGST + other charges). Many invoices show a "Taxable Value" column and separate tax rows at the bottom — always add the tax to get total_value. Example: taxable=6000, GST 5%=300 → total_value=6300.
 `;
 
   let attempts = 0;
@@ -257,7 +258,14 @@ CRITICAL EXTRACTION RULES:
           const oc = item.other_charges != null ? parseFloat(item.other_charges) || null : null;
           const base = qty * rate;
           const gstAmt = gst ? base * gst / 100 : 0;
-          const total = parseFloat(item.total_value) || Math.round(base + gstAmt + (oc || 0));
+          // Always compute total as base + GST + other charges.
+          // OCR's total_value is often the taxable (pre-tax) value from the invoice table —
+          // using it directly would show pre-tax total. We compute correctly and let the
+          // user override via the editable Total field if needed.
+          const computed = Math.round((base + gstAmt + (oc || 0)) * 100) / 100;
+          const ocrTotal = parseFloat(item.total_value) || 0;
+          // Use computed if it differs from OCR total (OCR gave pre-tax), else keep OCR total
+          const total = (gst && ocrTotal && Math.abs(ocrTotal - base) < 1) ? computed : (computed || ocrTotal);
           return {
             id: idx + 1,
             material: item.raw_material_name || `Spice Commodity #${idx + 1}`,

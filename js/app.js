@@ -2,7 +2,7 @@
 // FSSAI Quality & Traceability with Firebase Firestore Cloud Sync & Gemini Vision AI
 
 import { saveEntryToCloud, deleteEntryFromCloud, loadAllRawEntriesFromCloud, updateCloudBadge } from './firebase-config.js?v=3.1.0';
-import { scanRawMaterialInvoice } from './ocr.js?v=3.2.0';
+import { scanRawMaterialInvoice } from './ocr.js?v=3.3.0';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // OCTOBER 2026 PRE-POPULATED REALISTIC CONSIGNMENTS
