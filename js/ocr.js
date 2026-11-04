@@ -122,7 +122,7 @@ RETURN ONLY A VALID JSON OBJECT WITH THIS EXACT STRUCTURE:
       "quantity_kg": 30,
       "rate_per_kg": 48.0,
       "gst_percent": "GST percentage (e.g. 5, 12, 18). Null if not found.",
-      "other_charges": "Any other charges like freight, handling in ₹. Null if not found.",
+      "other_charges": "SUM of ALL extra charges on this item: Packing/Chrgs, APMC charges, Heli Majuri, Hamali, Freight, TCS, Labour, Cartage, Weighment, Rounding etc. Add ALL such charges together as a single number. Null if none.",
       "total_value": "Final amount for this line item INCLUDING GST + other charges (after-tax). If invoice shows taxable value and tax separately, add them together. Return null if unclear.",
       "quality_status": "Passed / Food Grade"
     }
@@ -138,15 +138,18 @@ CRITICAL EXTRACTION RULES:
 6. For supplier_address, phone_no, gstin, fssai_no — use empty string if not visible on invoice.
 7. For hsn_code, supplier_batch_no, no_of_bags, gst_percent, other_charges — use null if not found.
 8. IMPORTANT — DO NOT treat charges as separate line items. The following are NOT raw materials and must NOT appear in "items" array:
-   - Packaging charges / packing charges / P&F charges
+   - Packaging charges / packing charges / P&F charges / Packing/Chrgs
    - Freight charges / transportation / transport cost / logistics
-   - Loading / unloading charges
-   - Handling charges / labour charges
+   - Loading / unloading charges / Hamali / Heli Majuri
+   - Handling charges / labour charges / Weighment charges
    - Delivery charges / courier charges
    - Commission / brokerage
    - Cartage / godown charges
+   - APMC charges / mandi charges / market committee fees
+   - TCS (Tax Collected at Source)
+   - Rounded off / rounding adjustment
    - Any row that has no quantity_kg (i.e. it's a surcharge row)
-   Instead, SUM all such charges and put the total in the "other_charges" field of the relevant line item (usually the last/only commodity item), or add to the first item if only one commodity.
+   Instead, SUM ALL such charges (Packing + APMC + Heli Majuri + Hamali + TCS + Rounding etc.) and put the TOTAL SUM in the "other_charges" field of the relevant commodity line item.
 9. Only rows with actual spice/commodity/raw material + quantity in KG should be in "items".
 10. TOTAL VALUE RULE — total_value must be the FINAL after-tax amount (taxable value + CGST + SGST + IGST + other charges). Many invoices show a "Taxable Value" column and separate tax rows at the bottom — always add the tax to get total_value. Example: taxable=6000, GST 5%=300 → total_value=6300.
 `;
@@ -275,6 +278,7 @@ CRITICAL EXTRACTION RULES:
             qty: qty,
             rate: rate,
             gst: gst,
+            gstAmt: gstAmt > 0 ? Math.round(gstAmt * 100) / 100 : null,
             otherCharges: oc,
             total: total,
             quality: item.quality_status || "Passed / Food Grade"
