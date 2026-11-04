@@ -287,15 +287,7 @@ function renderTable(dataToRender = null) {
   }).join('');
 
   if (tfoot) {
-    tfoot.innerHTML = `
-      <tr class="tfoot-row">
-        <td colspan="11" style="text-align:right; font-weight:800; color:var(--text-secondary); text-transform:uppercase; font-size:11.5px; letter-spacing:0.5px;">TOTAL CONSIGNMENTS (${data.length}):</td>
-        <td class="num-col font-bold" style="color:var(--text-primary);">${formatNum(totalQty)} KG</td>
-        <td></td>
-        <td class="num-col font-bold total-green" style="font-size:14px;">₹${formatNum(totalVal)}</td>
-        <td colspan="2"></td>
-      </tr>
-    `;
+    tfoot.innerHTML = '';
   }
 }
 
