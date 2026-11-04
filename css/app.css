@@ -2154,10 +2154,11 @@ select.form-input {
   th:nth-child(12), td:nth-child(12) { width: 3% !important; }
   th:nth-child(13), td:nth-child(13) { width: 4% !important; }
   th:nth-child(14), td:nth-child(14) { width: 4% !important; }
-  th:nth-child(15), td:nth-child(15) { width: 3% !important; }
-  th:nth-child(16), td:nth-child(16) { width: 4% !important; }
-  th:nth-child(17), td:nth-child(17) { width: 5% !important; }
-  th:nth-child(18), td:nth-child(18) { width: 6% !important; }
+  th:nth-child(15), td:nth-child(15) { width: 3% !important; }  /* GST % */
+  th:nth-child(16), td:nth-child(16) { width: 4% !important; }  /* GST Amt */
+  th:nth-child(17), td:nth-child(17) { width: 4% !important; }  /* Other Chg */
+  th:nth-child(18), td:nth-child(18) { width: 5% !important; }  /* Total */
+  th:nth-child(19), td:nth-child(19) { width: 5% !important; }  /* Quality Status */
 
   /* Print title above table */
   #view-register::before {

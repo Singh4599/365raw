@@ -268,6 +268,7 @@ function renderTable(dataToRender = null) {
         <td class="num-col font-bold">${formatNum(qty)}</td>
         <td class="num-col">₹${formatNum(rate)}</td>
         <td class="num-col">${entry.gst ? entry.gst + '%' : '—'}</td>
+        <td class="num-col" style="color:#15803D; font-weight:600;">${entry.gst && rate && qty ? '₹' + formatNum(Math.round(qty * rate * entry.gst / 100 * 100) / 100) : '—'}</td>
         <td class="num-col">${entry.otherCharges ? '₹' + formatNum(entry.otherCharges) : '—'}</td>
         <td class="num-col total-green">₹${formatNum(total)}</td>
         <td style="text-align:center;">
