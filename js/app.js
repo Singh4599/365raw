@@ -267,9 +267,10 @@ function renderTable(dataToRender = null) {
         <td class="num-col">${entry.noOfBags ? formatNum(entry.noOfBags) : '—'}</td>
         <td class="num-col font-bold">${formatNum(qty)}</td>
         <td class="num-col">₹${formatNum(rate)}</td>
+        <td class="num-col" style="color:#1D4ED8; font-weight:600;">₹${formatNum(Math.round(qty * rate * 100) / 100)}</td>
+        <td class="num-col">${entry.otherCharges ? '₹' + formatNum(entry.otherCharges) : '—'}</td>
         <td class="num-col">${entry.gst ? entry.gst + '%' : '—'}</td>
         <td class="num-col" style="color:#15803D; font-weight:600;">${entry.gst && rate && qty ? '₹' + formatNum(Math.round(qty * rate * entry.gst / 100 * 100) / 100) : '—'}</td>
-        <td class="num-col">${entry.otherCharges ? '₹' + formatNum(entry.otherCharges) : '—'}</td>
         <td class="num-col total-green">₹${formatNum(total)}</td>
         <td style="text-align:center;">
           <span class="status-pill ${qualityClass}">${escapeHtml(qualityText)}</span>
@@ -991,10 +992,10 @@ window.renderScannedInvoiceUI = function() {
               <col style="width:120px" />
               <col style="width:60px" />
               <col style="width:80px" />
-              <col style="width:80px" />
+              <col style="width:90px" />
+              <col style="width:110px" />
               <col style="width:60px" />
               <col style="width:80px" />
-              <col style="width:120px" />
               <col style="width:110px" />
               <col style="width:40px" />
             </colgroup>
@@ -1007,9 +1008,10 @@ window.renderScannedInvoiceUI = function() {
                 <th style="padding:10px 8px; font-weight:800; color:var(--text-secondary);">Bags</th>
                 <th style="padding:10px 8px; font-weight:800; color:var(--text-secondary);">Qty (KG) *</th>
                 <th style="padding:10px 8px; font-weight:800; color:var(--text-secondary);">Rate/KG (₹)</th>
+                <th style="padding:10px 8px; font-weight:800; color:var(--text-secondary);">Item Price (₹)</th>
+                <th style="padding:10px 8px; font-weight:800; color:var(--text-secondary);">Other Chg (₹) <span style="font-weight:500; font-size:10px; color:#94A3B8;">Packing/APMC/Majuri</span></th>
                 <th style="padding:10px 8px; font-weight:800; color:var(--text-secondary);">GST %</th>
                 <th style="padding:10px 8px; font-weight:800; color:var(--text-secondary);">GST Amt (₹)</th>
-                <th style="padding:10px 8px; font-weight:800; color:var(--text-secondary);">Other Chg (₹) <span style="font-weight:500; font-size:10px; color:#94A3B8;">Packing/APMC/Majuri etc.</span></th>
                 <th style="padding:10px 8px; font-weight:800; color:var(--text-secondary);">Total (₹) <span style="font-weight:500; font-size:10px; color:#94A3B8;">= Bill Amount</span></th>
                 <th style="padding:10px 8px; text-align:center;"></th>
               </tr>
@@ -1037,13 +1039,16 @@ window.renderScannedInvoiceUI = function() {
                     <input class="form-input" type="number" step="any" style="width:100%; padding:8px 10px; font-size:13px; text-align:right;" id="scan-item-rate-${idx}" value="${it.rate}" oninput="onScannedItemCalc(${idx})" />
                   </td>
                   <td style="padding:8px;">
-                    <input class="form-input" type="number" step="0.01" min="0" max="100" style="width:100%; padding:8px 10px; font-size:13px; text-align:right;" id="scan-item-gst-${idx}" value="${it.gst || ''}" oninput="onScannedItemCalc(${idx})" placeholder="nil" />
-                  </td>
-                  <td style="padding:8px;">
-                    <input class="form-input" type="number" step="any" readonly style="width:100%; padding:8px 10px; font-size:13px; text-align:right; background:#F0FDF4; color:#15803D; font-weight:700; cursor:default;" id="scan-item-gstamt-${idx}" value="${it.gstAmt != null ? it.gstAmt : ''}" placeholder="auto" title="GST Amount = Qty × Rate × GST%" />
+                    <input class="form-input" type="number" step="any" readonly style="width:100%; padding:8px 10px; font-size:13px; text-align:right; background:#EFF6FF; color:#1D4ED8; font-weight:700; cursor:default;" id="scan-item-itemprice-${idx}" value="${Math.round((it.qty||0)*(it.rate||0)*100)/100 || ''}" placeholder="auto" title="Item Price = Qty × Rate/KG" />
                   </td>
                   <td style="padding:8px;">
                     <input class="form-input" type="number" step="0.01" min="0" style="width:100%; padding:8px 10px; font-size:13px; text-align:right;" id="scan-item-oc-${idx}" value="${it.otherCharges || ''}" oninput="onScannedItemCalc(${idx})" placeholder="nil" />
+                  </td>
+                  <td style="padding:8px;">
+                    <input class="form-input" type="number" step="0.01" min="0" max="100" style="width:100%; padding:8px 10px; font-size:13px; text-align:right;" id="scan-item-gst-${idx}" value="${it.gst || ''}" oninput="onScannedItemCalc(${idx})" placeholder="nil" />
+                  </td>
+                  <td style="padding:8px;">
+                    <input class="form-input" type="number" step="any" readonly style="width:100%; padding:8px 10px; font-size:13px; text-align:right; background:#F0FDF4; color:#15803D; font-weight:700; cursor:default;" id="scan-item-gstamt-${idx}" value="${it.gstAmt != null ? it.gstAmt : ''}" placeholder="auto" title="GST Amount" />
                   </td>
                   <td style="padding:8px;">
                     <input class="form-input" type="number" step="any" style="width:100%; padding:8px 10px; font-size:13px; font-weight:700; text-align:right; background:#FFFBEB; border:1px solid #FCD34D;" id="scan-item-total-${idx}" value="${it.total}" oninput="scannedCandidate.items[${idx}].total = parseFloat(this.value) || 0; updateScanTotalsDisplay();" title="Edit to match bill's final total if different" />
@@ -1104,11 +1109,14 @@ window.onScannedItemCalc = function(idx) {
   // Computed total using our formula
   const computedTotal = Math.round((base + gstAmt + oc) * 100) / 100;
   item.total = computedTotal;
+  // Update Item Price display (Qty × Rate)
+  const itemPriceEl = document.getElementById(`scan-item-itemprice-${idx}`);
+  if (itemPriceEl) itemPriceEl.value = base > 0 ? Math.round(base * 100) / 100 : '';
   const totEl = document.getElementById(`scan-item-total-${idx}`);
   if (totEl) {
     totEl.value = item.total;
     // Highlight if user has previously set a different bill total
-    totEl.style.background = '#F8FAFC';
+    totEl.style.background = '#FFFBEB';
   }
   const gstAmtEl = document.getElementById(`scan-item-gstamt-${idx}`);
   if (gstAmtEl) gstAmtEl.value = gstAmt > 0 ? gstAmt : '';
