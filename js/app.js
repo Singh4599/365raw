@@ -405,8 +405,9 @@ window.calcTotal = function() {
   const g = parseFloat(document.getElementById('f-gst') && document.getElementById('f-gst').value) || 0;
   const oc = parseFloat(document.getElementById('f-other-charges') && document.getElementById('f-other-charges').value) || 0;
   const base = q * r;
-  const gstAmt = base * g / 100;
-  document.getElementById('f-total').value = (base + gstAmt + oc).toFixed(2);
+  const taxable = base + oc;
+  const gstAmt = g > 0 ? Math.round(taxable * g / 100 * 100) / 100 : 0;
+  document.getElementById('f-total').value = (taxable + gstAmt).toFixed(2);
 };
 
 window.submitEntry = async function() {
@@ -637,10 +638,11 @@ window.calcEditModalTotal = function() {
   const g = parseFloat(document.getElementById('m-edit-gst')?.value) || 0;
   const oc = parseFloat(document.getElementById('m-edit-other-charges')?.value) || 0;
   const base = q * r;
-  const gstAmt = base * g / 100;
+  const taxable = base + oc;
+  const gstAmt = g > 0 ? Math.round(taxable * g / 100 * 100) / 100 : 0;
   const totalInput = document.getElementById('m-edit-total');
   if (totalInput) {
-    totalInput.value = (base + gstAmt + oc).toFixed(2);
+    totalInput.value = (taxable + gstAmt).toFixed(2);
   }
 };
 
@@ -1104,10 +1106,12 @@ window.onScannedItemCalc = function(idx) {
   item.gst = g || null;
   item.otherCharges = oc || null;
   const base = q * r;
-  const gstAmt = Math.round(base * g / 100 * 100) / 100;
+  // GST applies on (Item Price + Other Charges) when GST% exists
+  const taxable = base + oc;
+  const gstAmt = g > 0 ? Math.round(taxable * g / 100 * 100) / 100 : 0;
   item.gstAmt = gstAmt || null;
-  // Computed total using our formula
-  const computedTotal = Math.round((base + gstAmt + oc) * 100) / 100;
+  // Total = Taxable + GST Amt
+  const computedTotal = Math.round((taxable + gstAmt) * 100) / 100;
   item.total = computedTotal;
   // Update Item Price display (Qty × Rate)
   const itemPriceEl = document.getElementById(`scan-item-itemprice-${idx}`);
