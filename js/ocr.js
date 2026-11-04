@@ -151,7 +151,8 @@ CRITICAL EXTRACTION RULES:
    - Any row that has no quantity_kg (i.e. it's a surcharge row)
    Instead, SUM ALL such charges (Packing + APMC + Heli Majuri + Hamali + TCS + Rounding + Round Off etc.) and put the TOTAL SUM in the "other_charges" field of the relevant commodity line item.
 9. Only rows with actual spice/commodity/raw material + quantity in KG should be in "items".
-10. TOTAL VALUE RULE — total_value must be the FINAL after-tax amount (taxable value + CGST + SGST + IGST + other charges). Many invoices show a "Taxable Value" column and separate tax rows at the bottom — always add the tax to get total_value. Example: taxable=6000, GST 5%=300 → total_value=6300.
+10. TOTAL VALUE RULE — total_value must be the ABSOLUTE FINAL amount on the bill (Bill Amount / Amount Chargeable / Grand Total at bottom of invoice). This includes everything: taxable value + CGST + SGST + IGST + all other charges + rounding. Some suppliers charge GST on other charges too — always use the final printed total. Example: Taxable=15402, CGST 2.5%=385, SGST 2.5%=385, TCS=0, Round Off=-0.10 → total_value=16172 (the printed Bill Amount).
+11. QUANTITY RULE — if invoice shows "Pcs" or "Units" (not KG), extract the actual net weight in KG from the invoice. If not shown, use Qty × net weight per piece if mentioned.
 `;
 
   let attempts = 0;
@@ -260,15 +261,31 @@ CRITICAL EXTRACTION RULES:
           const gst = item.gst_percent != null ? parseFloat(item.gst_percent) || null : null;
           const oc = item.other_charges != null ? parseFloat(item.other_charges) || null : null;
           const base = qty * rate;
-          const gstAmt = gst ? base * gst / 100 : 0;
-          // Always compute total as base + GST + other charges.
-          // OCR's total_value is often the taxable (pre-tax) value from the invoice table —
-          // using it directly would show pre-tax total. We compute correctly and let the
-          // user override via the editable Total field if needed.
-          const computed = Math.round((base + gstAmt + (oc || 0)) * 100) / 100;
           const ocrTotal = parseFloat(item.total_value) || 0;
-          // Use computed if it differs from OCR total (OCR gave pre-tax), else keep OCR total
-          const total = (gst && ocrTotal && Math.abs(ocrTotal - base) < 1) ? computed : (computed || ocrTotal);
+
+          // Some suppliers charge GST on (base + other charges), so our formula
+          // base + gstOnBase + others may differ. Trust OCR total_value if it looks
+          // like a final after-tax amount (greater than base, or includes extra charges).
+          // Only fall back to computed if OCR total is missing or equals pre-tax base.
+          const gstOnBase = gst ? Math.round(base * gst / 100 * 100) / 100 : 0;
+          const computed = Math.round((base + gstOnBase + (oc || 0)) * 100) / 100;
+
+          // Trust OCR total if: it exists AND it's different from just the base (not pre-tax)
+          // i.e. OCR total > base (has tax+charges in it)
+          let total;
+          if (ocrTotal > 0 && ocrTotal > base) {
+            // OCR gave the actual final bill total — use it directly
+            total = ocrTotal;
+          } else {
+            // No reliable OCR total — use computed formula
+            total = computed || ocrTotal;
+          }
+
+          // GST amount: use actual total to back-calculate if OCR total is trusted
+          // so breakdown is consistent: gstAmt = total - base - others
+          const gstAmt = ocrTotal > base
+            ? Math.round((ocrTotal - base - (oc || 0)) * 100) / 100
+            : gstOnBase;
           return {
             id: idx + 1,
             material: item.raw_material_name || `Spice Commodity #${idx + 1}`,

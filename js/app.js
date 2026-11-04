@@ -1010,7 +1010,7 @@ window.renderScannedInvoiceUI = function() {
                 <th style="padding:10px 8px; font-weight:800; color:var(--text-secondary);">GST %</th>
                 <th style="padding:10px 8px; font-weight:800; color:var(--text-secondary);">GST Amt (₹)</th>
                 <th style="padding:10px 8px; font-weight:800; color:var(--text-secondary);">Other Chg (₹) <span style="font-weight:500; font-size:10px; color:#94A3B8;">Packing/APMC/Majuri etc.</span></th>
-                <th style="padding:10px 8px; font-weight:800; color:var(--text-secondary);">Total (₹)</th>
+                <th style="padding:10px 8px; font-weight:800; color:var(--text-secondary);">Total (₹) <span style="font-weight:500; font-size:10px; color:#94A3B8;">= Bill Amount</span></th>
                 <th style="padding:10px 8px; text-align:center;"></th>
               </tr>
             </thead>
@@ -1046,7 +1046,7 @@ window.renderScannedInvoiceUI = function() {
                     <input class="form-input" type="number" step="0.01" min="0" style="width:100%; padding:8px 10px; font-size:13px; text-align:right;" id="scan-item-oc-${idx}" value="${it.otherCharges || ''}" oninput="onScannedItemCalc(${idx})" placeholder="nil" />
                   </td>
                   <td style="padding:8px;">
-                    <input class="form-input" type="number" step="any" style="width:100%; padding:8px 10px; font-size:13px; font-weight:700; text-align:right; background:#F8FAFC;" id="scan-item-total-${idx}" value="${it.total}" oninput="scannedCandidate.items[${idx}].total = parseFloat(this.value) || 0; updateScanTotalsDisplay();" />
+                    <input class="form-input" type="number" step="any" style="width:100%; padding:8px 10px; font-size:13px; font-weight:700; text-align:right; background:#FFFBEB; border:1px solid #FCD34D;" id="scan-item-total-${idx}" value="${it.total}" oninput="scannedCandidate.items[${idx}].total = parseFloat(this.value) || 0; updateScanTotalsDisplay();" title="Edit to match bill's final total if different" />
                   </td>
                   <td style="padding:8px; text-align:center;">
                     <button type="button" style="background:none; border:none; cursor:pointer; color:#EF4444; font-size:16px; font-weight:bold; padding:2px 6px;" title="Remove line item" onclick="removeScannedItemRow(${idx})">×</button>
@@ -1101,9 +1101,15 @@ window.onScannedItemCalc = function(idx) {
   const base = q * r;
   const gstAmt = Math.round(base * g / 100 * 100) / 100;
   item.gstAmt = gstAmt || null;
-  item.total = Math.round((base + gstAmt + oc) * 100) / 100;
+  // Computed total using our formula
+  const computedTotal = Math.round((base + gstAmt + oc) * 100) / 100;
+  item.total = computedTotal;
   const totEl = document.getElementById(`scan-item-total-${idx}`);
-  if (totEl) totEl.value = item.total;
+  if (totEl) {
+    totEl.value = item.total;
+    // Highlight if user has previously set a different bill total
+    totEl.style.background = '#F8FAFC';
+  }
   const gstAmtEl = document.getElementById(`scan-item-gstamt-${idx}`);
   if (gstAmtEl) gstAmtEl.value = gstAmt > 0 ? gstAmt : '';
   updateScanTotalsDisplay();
