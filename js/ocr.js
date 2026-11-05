@@ -162,7 +162,7 @@ CRITICAL EXTRACTION RULES:
   if (rawBase64) {
     while (attempts < maxAttempts) {
       const key = getActiveGeminiKey();
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`;
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`;
 
       const payload = {
         contents: [
@@ -179,7 +179,8 @@ CRITICAL EXTRACTION RULES:
           }
         ],
         generationConfig: {
-          temperature: 0.1
+          temperature: 0.1,
+          responseMimeType: 'application/json'
         }
       };
 
@@ -242,7 +243,8 @@ CRITICAL EXTRACTION RULES:
 
         // If parsed has no useful data, treat as failure and retry
         const hasData = (parsed.supplier_name && parsed.supplier_name.trim()) ||
-                        (Array.isArray(parsed.items) && parsed.items.length > 0);
+                        (Array.isArray(parsed.items) && parsed.items.some(i =>
+                          i.raw_material_name || i.quantity_kg || i.rate_per_kg));
         if (!hasData) {
           console.warn('[Gemini AI] Empty/useless response, retrying with next key...');
           attempts++;
