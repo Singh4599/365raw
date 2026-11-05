@@ -5,34 +5,6 @@ import { saveEntryToCloud, deleteEntryFromCloud, loadAllRawEntriesFromCloud, upd
 import { scanRawMaterialInvoice } from './ocr.js?v=3.3.0';
 
 // ──────────────────────────────────────────────────────────────────────────────
-// OCTOBER 2026 PRE-POPULATED REALISTIC CONSIGNMENTS
-// ──────────────────────────────────────────────────────────────────────────────
-const OCTOBER_PRELOAD_DATA = [
-  { id: 1,  date: "2026-10-01", material: "Cumin Seeds (Jeera Machine Clean)", supplier: "Patel Agro Commodities, Unjha Mandi", invoice: "INV-2026-8812", supplierLot: "UNJ-26-901", ourLot: "RM-OCT-001", qty: 1200, rate: 280, total: 336000, quality: "Passed / Food Grade" },
-  { id: 2,  date: "2026-10-02", material: "Coriander Whole (Dhaniya Green Eagle)", supplier: "Hadoti Spice Traders, Kota Mandi", invoice: "INV-7734", supplierLot: "KT-DH-441", ourLot: "RM-OCT-002", qty: 2500, rate: 115, total: 287500, quality: "Passed / Food Grade" },
-  { id: 3,  date: "2026-10-03", material: "Kashmiri Red Chilli Whole", supplier: "Royal Agro Exporters, Guntur Mandi", invoice: "INV-K-441", supplierLot: "GNT-CHI-110", ourLot: "RM-OCT-003", qty: 800, rate: 245, total: 196000, quality: "Passed / Food Grade" },
-  { id: 4,  date: "2026-10-05", material: "Turmeric Whole (Salem Double Polished)", supplier: "Nizamabad Spices Corp", invoice: "INV-NZ-552", supplierLot: "NZ-TUR-809", ourLot: "RM-OCT-004", qty: 1500, rate: 165, total: 247500, quality: "Passed / Food Grade" },
-  { id: 5,  date: "2026-10-06", material: "Black Pepper (Malabar Garbled TGSEB)", supplier: "Wayanad Spices Consortium", invoice: "INV-WY-109", supplierLot: "KL-WY-312", ourLot: "RM-OCT-005", qty: 450, rate: 640, total: 288000, quality: "Passed / Food Grade" },
-  { id: 6,  date: "2026-10-07", material: "Green Cardamom (8mm Bold)", supplier: "Idukki Planters Syndicate", invoice: "INV-IDK-088", supplierLot: "BDK-CARD-99", ourLot: "RM-OCT-006", qty: 100, rate: 2250, total: 225000, quality: "Passed / Food Grade" },
-  { id: 7,  date: "2026-10-08", material: "Cloves (Zanzibar Quality)", supplier: "South Coast Importers, Tuticorin", invoice: "INV-SC-902", supplierLot: "TUT-CLV-504", ourLot: "RM-OCT-007", qty: 250, rate: 780, total: 195000, quality: "Passed / Food Grade" },
-  { id: 8,  date: "2026-10-09", material: "Mustard Seeds (Small Bold Rai)", supplier: "Alwar Agro Mandi, Rajasthan", invoice: "INV-ALW-312", supplierLot: "ALW-RAI-221", ourLot: "RM-OCT-008", qty: 3000, rate: 65, total: 195000, quality: "Passed / Food Grade" },
-  { id: 9,  date: "2026-10-10", material: "Fennel Seeds (Lucknowi Saunf Extra Green)", supplier: "Gujarat Seed Corporation, Mehsana", invoice: "INV-GSC-661", supplierLot: "MHS-SAU-711", ourLot: "RM-OCT-009", qty: 600, rate: 185, total: 111000, quality: "Passed / Food Grade" },
-  { id: 10, date: "2026-10-12", material: "Fenugreek (Methi Dana Machine Clean)", supplier: "Sanvaldasgarh Agro Products, MP", invoice: "INV-PTG-404", supplierLot: "PTG-MET-189", ourLot: "RM-OCT-010", qty: 1000, rate: 72, total: 72000, quality: "Passed / Food Grade" },
-  { id: 11, date: "2026-10-13", material: "Bay Leaf (Tej Patta Selected)", supplier: "Guwahati Forest Produce, Assam", invoice: "INV-GHT-190", supplierLot: "ASM-TEJ-008", ourLot: "RM-OCT-011", qty: 350, rate: 110, total: 38500, quality: "Passed / Food Grade" },
-  { id: 12, date: "2026-10-14", material: "Cinnamon Sticks (Ceylon Grade Alba)", supplier: "Sri Lanka Direct Imports, Kochi", invoice: "INV-SL-418", supplierLot: "KCH-CIN-882", ourLot: "RM-OCT-012", qty: 200, rate: 520, total: 104000, quality: "Passed / Food Grade" },
-  { id: 13, date: "2026-10-15", material: "Dried Ginger (Sun Dried Sonth)", supplier: "Calicut Agri Trading Co", invoice: "INV-CL-550", supplierLot: "CLT-SNT-339", ourLot: "RM-OCT-013", qty: 750, rate: 310, total: 232500, quality: "Passed / Food Grade" },
-  { id: 14, date: "2026-10-16", material: "Star Anise (Whole Chakri Phool)", supplier: "Himalayan Botanicals, Siliguri", invoice: "INV-HIM-229", supplierLot: "SLG-STR-104", ourLot: "RM-OCT-014", qty: 150, rate: 680, total: 102000, quality: "Passed / Food Grade" },
-  { id: 15, date: "2026-10-16", material: "Mace (Javitri Golden Flower)", supplier: "Malabar Spices Co, Cochin", invoice: "INV-MC-114", supplierLot: "CCH-JAV-055", ourLot: "RM-OCT-015", qty: 75, rate: 1950, total: 146250, quality: "Passed / Food Grade" },
-  { id: 16, date: "2026-10-17", material: "Amchur (Dry Mango Slice Premium)", supplier: "Bareilly Krishi Udyog, UP", invoice: "INV-BR-781", supplierLot: "BRL-AMC-902", ourLot: "RM-OCT-016", qty: 500, rate: 190, total: 95000, quality: "Passed / Food Grade" },
-  { id: 17, date: "2026-10-18", material: "Cumin Seeds (Jeera Machine Clean)", supplier: "Unjha Commodity Merchants", invoice: "INV-UNJ-4491", supplierLot: "UNJ-26-950", ourLot: "RM-OCT-017", qty: 1500, rate: 282, total: 423000, quality: "Passed / Food Grade" },
-  { id: 18, date: "2026-10-18", material: "Red Chilli (Guntur Teja S17)", supplier: "Krishna River Spice Traders", invoice: "INV-KRS-901", supplierLot: "GNT-TJ-301", ourLot: "RM-OCT-018", qty: 1000, rate: 230, total: 230000, quality: "Passed / Food Grade" },
-  { id: 19, date: "2026-10-18", material: "Nutmeg Whole / Jaiphal (Grade A1 Selected)", supplier: "Malabar Spice Producers Co-op, Kerala", invoice: "INV-KER-5091", supplierLot: "KL-NUT-410", ourLot: "RM-OCT-019", qty: 350, rate: 620, total: 217000, quality: "Passed / Food Grade" },
-  { id: 20, date: "2026-10-18", material: "Kasuri Methi (Nagauri Dried Fenugreek Leaves)", supplier: "Marwar Agri Farm Producer, Nagaur Mandi", invoice: "INV-NAG-3320", supplierLot: "NGR-KM-108", ourLot: "RM-OCT-020", qty: 800, rate: 145, total: 116000, quality: "Passed / Food Grade" },
-  { id: 21, date: "2026-10-18", material: "Black Salt Lumps (Kala Namak Natural Crystal)", supplier: "Rajasthan Minerals & Salt Syndicate, Sambhar", invoice: "INV-SMB-7801", supplierLot: "SBR-KN-552", ourLot: "RM-OCT-021", qty: 2500, rate: 28, total: 70000, quality: "Passed / Food Grade" },
-  { id: 22, date: "2026-10-18", material: "Coriander Seeds (Dhaniya Badami Selected)", supplier: "Hadoti Spice Traders, Ramganj Mandi", invoice: "INV-RGM-1192", supplierLot: "RGM-DH-771", ourLot: "RM-OCT-022", qty: 1800, rate: 112, total: 201600, quality: "Passed / Food Grade" }
-];
-
-// ──────────────────────────────────────────────────────────────────────────────
 // STATE
 // ──────────────────────────────────────────────────────────────────────────────
 let entries = [];
@@ -74,14 +46,6 @@ async function initData() {
     }
   } catch (err) {
     console.warn('[Firebase] Load error, using local fallback:', err);
-  }
-
-  // 3. Only seed baseline data ON FIRST RUN ever if completely empty
-  if (!hasInitialized && entries.length === 0) {
-    entries = OCTOBER_PRELOAD_DATA.filter(item => !deletedIds.has(String(item.id)));
-    entries.forEach(item => {
-      saveEntryToCloud(item).catch(() => {});
-    });
   }
 
   localStorage.setItem('lv_raw_initialized', 'true');

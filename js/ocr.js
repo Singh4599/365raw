@@ -347,29 +347,24 @@ CRITICAL EXTRACTION RULES:
 
   // Graceful Fallback if offline, blocked, or unusual format
   console.warn("[Gemini AI] Fallback parser activated");
-  onProgress(100, "Draft invoice generated (Please review details)");
-
-  const fallbackItems = [
-    { id: 1, material: "Dry Chilli Powder", supplierLot: "3704/43", qty: 30, rate: 48, total: 1440, quality: "Passed / Food Grade" },
-    { id: 2, material: "White Chinese Masala", supplierLot: "3705/12", qty: 9, rate: 48, total: 432, quality: "Passed / Food Grade" },
-    { id: 3, material: "Dry Chilli Powder", supplierLot: "3706/66", qty: 43, rate: 48, total: 2064, quality: "Passed / Food Grade" },
-    { id: 4, material: "Coriander Powder", supplierLot: "5708/10", qty: 10, rate: 48, total: 480, quality: "Passed / Food Grade" }
-  ];
+  onProgress(100, "Could not extract — please fill in details manually");
 
   return {
     date: new Date().toISOString().split('T')[0],
-    supplier: "K MAITRI FOODS & COLD STORAGE PVT. LTD.",
-    supplierAddress: "Lasalgaon, Nashik, Maharashtra",
+    supplier: "",
+    supplierAddress: "",
     phoneNo: "",
     gstin: "",
     fssaiNo: "",
-    invoice: `K1520-2026`,
-    items: fallbackItems,
-    material: fallbackItems[0].material,
-    supplierLot: fallbackItems[0].supplierLot,
-    qty: fallbackItems[0].qty,
-    rate: fallbackItems[0].rate,
-    total: fallbackItems[0].total,
+    invoice: "",
+    items: [
+      { id: 1, material: "", supplierLot: "", qty: null, rate: null, gst: null, otherCharges: null, total: null, quality: "Passed / Food Grade" }
+    ],
+    material: "",
+    supplierLot: "",
+    qty: null,
+    rate: null,
+    total: null,
     quality: "Passed / Food Grade",
     thumbData: thumbData
   };
