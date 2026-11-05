@@ -152,8 +152,9 @@ CRITICAL EXTRACTION RULES:
    Instead, SUM ALL such charges (Packing + APMC + Heli Majuri + Hamali + TCS + Rounding + Round Off etc.) and put the TOTAL SUM in the "other_charges" field of the relevant commodity line item.
 9. Only rows with actual spice/commodity/raw material + quantity in KG should be in "items".
 10. TOTAL VALUE RULE — total_value must be the ABSOLUTE FINAL amount on the bill (Bill Amount / Amount Chargeable / Grand Total at bottom of invoice). This includes everything: taxable value + CGST + SGST + IGST + all other charges + rounding. Some suppliers charge GST on other charges too — always use the final printed total. Example: Taxable=15402, CGST 2.5%=385, SGST 2.5%=385, TCS=0, Round Off=-0.10 → total_value=16172 (the printed Bill Amount).
-11. QUANTITY RULE — if invoice shows "Pcs" or "Units" (not KG), extract the actual net weight in KG from the invoice. If not shown, use Qty × net weight per piece if mentioned.
-`;
+11. QUANTITY RULE — if invoice shows "Pcs" or "Units" (not KG) in the QTY column, extract the actual net weight in KG from the NET WEIGHT column on the same row. Example: QTY=1 Pcs, NET WEIGHT=50.000 → quantity_kg=50. If net weight column not shown, use Qty × net weight per piece if mentioned. For rate_per_kg: if rate is per bag/pcs (e.g. Rate=2830 for 1 bag of 50kg), calculate rate_per_kg = rate / net_weight_kg (e.g. 2830 / 50 = 56.60).
+12. For bills where CGST + SGST = total GST: add them together (e.g. CGST 2.5% + SGST 2.5% = gst_percent=5).
+13. TRANSPORTATION/HAMALI/TRANSPORT charges shown separately on bill (e.g. "Transportation/Hamali: 8.50") must be included in other_charges.`;
 
   let attempts = 0;
   const maxAttempts = (GEMINI_KEYS && GEMINI_KEYS.length) ? GEMINI_KEYS.length * 2 : 5;
@@ -304,15 +305,15 @@ CRITICAL EXTRACTION RULES:
 
         const firstItem = items[0] || {
           id: 1,
-          material: "Cumin Seeds (Jeera)",
+          material: "",
           hsnCode: null,
           supplierLot: null,
           noOfBags: null,
-          qty: 1000,
-          rate: 220,
+          qty: null,
+          rate: null,
           gst: null,
           otherCharges: null,
-          total: 220000,
+          total: null,
           quality: "Passed / Food Grade"
         };
 
@@ -347,7 +348,22 @@ CRITICAL EXTRACTION RULES:
 
   // Graceful Fallback if offline, blocked, or unusual format
   console.warn("[Gemini AI] Fallback parser activated");
-  onProgress(100, "Could not extract — please fill in details manually");
+  onProgress(100, "⚠️ AI scan failed — form pre-filled with today's date, please fill remaining fields manually");
+
+  const emptyItem = {
+    id: 1,
+    material: "",
+    hsnCode: null,
+    supplierLot: null,
+    noOfBags: null,
+    qty: null,
+    rate: null,
+    gst: null,
+    gstAmt: null,
+    otherCharges: null,
+    total: null,
+    quality: "Passed / Food Grade"
+  };
 
   return {
     date: new Date().toISOString().split('T')[0],
@@ -357,13 +373,15 @@ CRITICAL EXTRACTION RULES:
     gstin: "",
     fssaiNo: "",
     invoice: "",
-    items: [
-      { id: 1, material: "", supplierLot: "", qty: null, rate: null, gst: null, otherCharges: null, total: null, quality: "Passed / Food Grade" }
-    ],
+    items: [emptyItem],
     material: "",
-    supplierLot: "",
+    hsnCode: null,
+    supplierLot: null,
+    noOfBags: null,
     qty: null,
     rate: null,
+    gst: null,
+    otherCharges: null,
     total: null,
     quality: "Passed / Food Grade",
     thumbData: thumbData
