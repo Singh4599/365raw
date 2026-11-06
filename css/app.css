@@ -2054,6 +2054,9 @@ select.form-input {
 }
 
 /* ─── A4 LANDSCAPE PRINT ─────────────────────────────────────────────── */
+/* Print-only header: hidden on screen */
+.print-only-header { display: none; }
+
 @media print {
   @page { size: A4 landscape; margin: 6mm 6mm 6mm 6mm; }
 
@@ -2064,36 +2067,36 @@ select.form-input {
 
   /* Hide everything except the register table */
   .sidebar, .sidebar-overlay, .app-header,
-  .stats-bar,
+  .official-banner, .stats-bar,
   .period-pills-bar, .filter-bar,
   #view-add, #view-scan, #view-summary,
   .table-action-btn, .tbl-footer,
   button, .tfoot-row td:last-child,
   .modal-backdrop { display: none !important; }
 
-  /* Show official banner in print for title + range */
-  .official-banner {
-    display: block !important;
-    background: #fff !important;
-    border: 2pt solid #000 !important;
-    padding: 5pt 8pt !important;
-    margin-bottom: 5pt !important;
-    box-shadow: none !important;
-  }
-  .ob-content-wrap {
+  /* Print-only header — original style + range on right */
+  .print-only-header {
     display: flex !important;
     justify-content: space-between !important;
     align-items: center !important;
+    border: 1.5pt solid #000 !important;
+    padding: 4pt 8pt !important;
+    margin-bottom: 4pt !important;
+    font-family: Arial, sans-serif !important;
   }
-  .ob-left { display: flex !important; flex-direction: column !important; gap: 2pt !important; }
-  .ob-company { font-size: 12pt !important; font-weight: 900 !important; color: #000 !important; letter-spacing: 1pt !important; }
-  .ob-doc { font-size: 7.5pt !important; font-weight: 700 !important; color: #222 !important; text-transform: uppercase !important; letter-spacing: 0.3pt !important; }
-  .ob-fssai { display: none !important; }
-  .ob-right { display: flex !important; flex-direction: column !important; align-items: flex-end !important; gap: 2pt !important; }
-  .ob-tag { font-size: 8pt !important; font-weight: 700 !important; color: #000 !important; background: none !important; border: none !important; padding: 0 !important; }
-  /* Hide "Supervisor" tag, keep only range tag */
-  #print-range-label { font-size: 9pt !important; font-weight: 800 !important; }
-  .ob-right .ob-tag:not(#print-range-label) { display: none !important; }
+  .poh-title {
+    font-size: 10pt !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5pt !important;
+    color: #000 !important;
+  }
+  .poh-range {
+    font-size: 9pt !important;
+    font-weight: 700 !important;
+    color: #000 !important;
+    white-space: nowrap !important;
+  }
 
   /* Remove layout chrome */
   body { background: #fff !important; font-size: 7pt !important; }
@@ -2142,6 +2145,7 @@ select.form-input {
     border: 0.4pt solid #999 !important;
     vertical-align: middle !important;
     word-break: break-word !important;
+    white-space: normal !important;
     line-height: 1.3 !important;
   }
 
