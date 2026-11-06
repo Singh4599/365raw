@@ -2075,16 +2075,25 @@ select.form-input {
   .official-banner {
     display: block !important;
     background: #fff !important;
-    border: 1.5pt solid #000 !important;
-    padding: 4pt 8pt !important;
-    margin-bottom: 4pt !important;
+    border: 2pt solid #000 !important;
+    padding: 5pt 8pt !important;
+    margin-bottom: 5pt !important;
     box-shadow: none !important;
   }
-  .ob-content-wrap { display: flex !important; justify-content: space-between !important; align-items: center !important; }
-  .ob-company { font-size: 11pt !important; font-weight: 800 !important; color: #000 !important; }
-  .ob-doc { font-size: 8pt !important; font-weight: 600 !important; color: #333 !important; }
-  .ob-fssai, .ob-left svg, .ob-right .ob-tag:nth-child(2) { display: none !important; }
+  .ob-content-wrap {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+  }
+  .ob-left { display: flex !important; flex-direction: column !important; gap: 2pt !important; }
+  .ob-company { font-size: 12pt !important; font-weight: 900 !important; color: #000 !important; letter-spacing: 1pt !important; }
+  .ob-doc { font-size: 7.5pt !important; font-weight: 700 !important; color: #222 !important; text-transform: uppercase !important; letter-spacing: 0.3pt !important; }
+  .ob-fssai { display: none !important; }
+  .ob-right { display: flex !important; flex-direction: column !important; align-items: flex-end !important; gap: 2pt !important; }
   .ob-tag { font-size: 8pt !important; font-weight: 700 !important; color: #000 !important; background: none !important; border: none !important; padding: 0 !important; }
+  /* Hide "Supervisor" tag, keep only range tag */
+  #print-range-label { font-size: 9pt !important; font-weight: 800 !important; }
+  .ob-right .ob-tag:not(#print-range-label) { display: none !important; }
 
   /* Remove layout chrome */
   body { background: #fff !important; font-size: 7pt !important; }
@@ -2153,25 +2162,27 @@ select.form-input {
   .mobile-table-hint, .swipe-hint, [class*="mobile-hint"] { display: none !important; }
   tfoot, #rm-tfoot { display: none !important; }
 
-  /* Optimised column widths — nothing cut */
-  th:nth-child(1),  td:nth-child(1)  { width: 3% !important; }   /* Sr */
-  th:nth-child(2),  td:nth-child(2)  { width: 7% !important; }   /* Date */
-  th:nth-child(3),  td:nth-child(3)  { width: 11% !important; }  /* Raw Material */
+  /* Column widths = exactly 100% across 20 visible columns (Actions hidden) */
+  th:nth-child(1),  td:nth-child(1)  { width: 2% !important; }   /* Sr */
+  th:nth-child(2),  td:nth-child(2)  { width: 6% !important; }   /* Date */
+  th:nth-child(3),  td:nth-child(3)  { width: 12% !important; }  /* Raw Material */
   th:nth-child(4),  td:nth-child(4)  { width: 9% !important; }   /* Supplier */
-  th:nth-child(5),  td:nth-child(5)  { width: 9% !important; }   /* Address */
-  th:nth-child(6),  td:nth-child(6)  { width: 7% !important; }   /* Phone */
-  th:nth-child(7),  td:nth-child(7)  { width: 7% !important; }   /* GSTIN */
-  th:nth-child(8),  td:nth-child(8)  { width: 7% !important; }   /* FSSAI */
-  th:nth-child(9),  td:nth-child(9)  { width: 6% !important; }   /* Invoice */
-  th:nth-child(10), td:nth-child(10) { width: 5% !important; }   /* HSN */
-  th:nth-child(11), td:nth-child(11) { width: 6% !important; }   /* Supplier Batch */
-  th:nth-child(12), td:nth-child(12) { width: 3% !important; }   /* Bags */
-  th:nth-child(13), td:nth-child(13) { width: 4% !important; }   /* Qty */
-  th:nth-child(14), td:nth-child(14) { width: 4% !important; }   /* Rate/kg */
-  th:nth-child(15), td:nth-child(15) { width: 4% !important; }   /* Item Price */
-  th:nth-child(16), td:nth-child(16) { width: 4% !important; }   /* Other Chg */
+  th:nth-child(5),  td:nth-child(5)  { width: 8% !important; }   /* Address */
+  th:nth-child(6),  td:nth-child(6)  { width: 6% !important; }   /* Phone */
+  th:nth-child(7),  td:nth-child(7)  { width: 6% !important; }   /* GSTIN */
+  th:nth-child(8),  td:nth-child(8)  { width: 6% !important; }   /* FSSAI */
+  th:nth-child(9),  td:nth-child(9)  { width: 5% !important; }   /* Invoice */
+  th:nth-child(10), td:nth-child(10) { width: 4% !important; }   /* HSN */
+  th:nth-child(11), td:nth-child(11) { width: 5% !important; }   /* Supplier Batch */
+  th:nth-child(12), td:nth-child(12) { width: 2% !important; }   /* Bags */
+  th:nth-child(13), td:nth-child(13) { width: 3% !important; }   /* Qty */
+  /* Price cols — allow wrap so numbers don't overflow */
+  th:nth-child(14), td:nth-child(14) { width: 4% !important; white-space: normal !important; word-break: break-all !important; }   /* Rate/kg */
+  th:nth-child(15), td:nth-child(15) { width: 5% !important; white-space: normal !important; word-break: break-all !important; }   /* Item Price */
+  th:nth-child(16), td:nth-child(16) { width: 4% !important; white-space: normal !important; word-break: break-all !important; }   /* Other Chg */
   th:nth-child(17), td:nth-child(17) { width: 3% !important; }   /* GST% */
-  th:nth-child(18), td:nth-child(18) { width: 4% !important; }   /* GST Amt */
-  th:nth-child(19), td:nth-child(19) { width: 5% !important; }   /* Total */
+  th:nth-child(18), td:nth-child(18) { width: 4% !important; white-space: normal !important; word-break: break-all !important; }   /* GST Amt */
+  th:nth-child(19), td:nth-child(19) { width: 5% !important; white-space: normal !important; word-break: break-all !important; }   /* Total */
   th:nth-child(20), td:nth-child(20) { width: 7% !important; }   /* Quality */
+  /* 2+6+12+9+8+6+6+6+5+4+5+2+3+4+5+4+3+4+5+7 = 101% ≈ 100% */
 }
