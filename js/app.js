@@ -5,6 +5,34 @@ import { saveEntryToCloud, deleteEntryFromCloud, loadAllRawEntriesFromCloud, upd
 import { scanRawMaterialInvoice } from './ocr.js?v=3.3.0';
 
 // ──────────────────────────────────────────────────────────────────────────────
+// HELPERS
+// ──────────────────────────────────────────────────────────────────────────────
+/** Convert YYYY-MM-DD → DD-MM-YYYY */
+function fmtDate(d) {
+  if (!d) return '—';
+  const parts = d.split('-');
+  if (parts.length === 3) return parts[2] + '-' + parts[1] + '-' + parts[0];
+  return d;
+}
+
+/** Build a human-readable date range label */
+function buildRangeLabel(data) {
+  if (!data || data.length === 0) return '';
+  const dates = data.map(e => e.date || '').filter(Boolean).sort();
+  const from = fmtDate(dates[0]);
+  const to = fmtDate(dates[dates.length - 1]);
+  if (from === to) return 'Date: ' + from;
+  // If same month: "01 Oct – 31 Oct 2026"
+  const [fd, fm, fy] = dates[0].split('-');
+  const [td, tm, ty] = dates[dates.length - 1].split('-');
+  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const fromMonName = monthNames[parseInt(fm, 10) - 1] || fm;
+  const toMonName = monthNames[parseInt(tm, 10) - 1] || tm;
+  if (fm === tm && fy === ty) return fromMonName + ' ' + fy;
+  return fd + ' ' + fromMonName + ' ' + fy + ' – ' + td + ' ' + toMonName + ' ' + ty;
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
 // STATE
 // ──────────────────────────────────────────────────────────────────────────────
 let entries = [];
@@ -170,7 +198,11 @@ function updateSupplierList() {
 // RENDER TABLE & STATS
 // ──────────────────────────────────────────────────────────────────────────────
 function renderTable(dataToRender = null) {
-  const data = dataToRender || getFilteredData();
+  const data = (dataToRender || getFilteredData()).slice().sort((a, b) => {
+    if ((a.date || '') < (b.date || '')) return -1;
+    if ((a.date || '') > (b.date || '')) return 1;
+    return 0;
+  });
   const tbody = document.getElementById('rm-tbody');
   const emptyState = document.getElementById('rm-empty');
   const tfoot = document.getElementById('rm-tfoot');
@@ -184,6 +216,10 @@ function renderTable(dataToRender = null) {
   }
 
   if (emptyState) emptyState.style.display = 'none';
+
+  // Update print range label
+  const rangeEl = document.getElementById('print-range-label');
+  if (rangeEl) rangeEl.textContent = buildRangeLabel(data);
 
   let totalQty = 0;
   let totalVal = 0;
@@ -218,7 +254,7 @@ function renderTable(dataToRender = null) {
     return `
       <tr>
         <td style="text-align:center; font-weight:600; color:var(--text-secondary);">${idx + 1}</td>
-        <td style="font-size:12px; color:var(--text-secondary); white-space:nowrap;">${entry.date || '—'}</td>
+        <td style="font-size:12px; color:var(--text-secondary); white-space:nowrap;">${fmtDate(entry.date)}</td>
         <td style="max-width:170px;">${matDisplay}</td>
         <td style="font-size:11.5px; color:var(--text-primary); font-weight:600; line-height:1.3; max-width:140px;">${escapeHtml(entry.supplier || '—')}</td>
         <td style="font-size:11px; color:var(--text-secondary); max-width:155px;">${escapeHtml(entry.supplierAddress || '—')}</td>
